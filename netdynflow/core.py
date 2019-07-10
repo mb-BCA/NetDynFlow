@@ -30,15 +30,6 @@ FullFlow
 IntrinsicFlow
     Returns the intrinsic flow on a network over time for a given input.
 
-Metrics derived from the tensors
---------------------------------
-TotalEvolution
-    Calculates total communicability over time from original tensor.
-NodeEvolution
-    Calculates communicability of every node over time from original tensor.
-Diversity
-    Calculates temporal evolution of the network's diversity.
-
 Reference and Citation
 ----------------------
 1. M. Gilson, N. Kouvaris, G. Deco & G.Zamora-Lopez "Framework based on communi-

@@ -29,7 +29,8 @@ dynamic communicability and flow return a set of matrices (a 3D NumPy array),
 each describing the state of the state of the pairwise node interations at
 at consecutive time points.
 
-**Reference and Citation**
+Reference and Citation
+**********************
 
 1. M. Gilson, N. Kouvaris, G. Deco & G.Zamora-Lopez "Framework based on communi-
 cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
@@ -38,7 +39,8 @@ cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
 from fMRI data: A new framework based on communicability and flow"
 bioRxiv (2018). DOI: https://doi.org/10.1101/421883.
 
-**Available functions**
+Available functions
+*******************
 
 The package is organised into two modules:
 
@@ -46,6 +48,27 @@ core.py
     Functions to obtain the temporal evolution of dynamic communicability and flow.
 metrics.py
     Network descriptors to analyse the temporal evolution of the dynamic communicability and flow.
+
+To see the list of all functions available use the standard help in an
+interactive session, for both modules ::
+
+>>> help(netdynflow.core)
+>>> help(netdynflow.metrics)
+
+Same, to find further details of every function:, e.g.,  ::
+
+>>> help(netdynflow.core.DynCom)
+>>> help(netdynflow.metrics.Diversity)
+
+In an IPython interactive session, or in a Jupyter Notebook, typing ``netdynflow``
+and then pressing <tab> will show all the functions available in the package.
+In IPython help is requested by typing and interrogation mark after the module
+or the function name, e.g.,  ::
+
+>>> import netdynflow
+>>> netdynflow?
+>>> netdynflow.DynCom?
+>>> netdynflow.metrics.Diversity?
 
 Using netdynflow
 ^^^^^^^^^^^^^^^^
@@ -100,29 +123,6 @@ of the network over time, these are calculated as:  ::
 >>> divers = ndf.Diversity(dyncom)
 
 ``totalcom`` and ``divers`` are two numpy arrays of length (tmax x tsteps) = 500.
-
-Obtaining further information
------------------------------
-To see the list of all functions available use the standard help in an
-interactive session, for both modules ::
-
->>> help(netdynflow.core)
->>> help(netdynflow.metrics)
-
-Same, to find further details of every function within each module:, e.g.,  ::
-
->>> help(netdynflow.core.DynCom)
->>> help(netdynflow.metrics.Diversity)
-
-In an IPython interactive session, or in a Jupyter Notebook, typing ``netdynflow``
-and then pressing <tab> will show all the functions available in the package.
-In IPython help is requested by typing and interrogation mark after the module
-or the function name, e.g.,  ::
-
->>> import netdynflow
->>> netdynflow?
->>> netdynflow.DynCom?
->>> netdynflow.metrics.Diversity?
 
 License
 -------
