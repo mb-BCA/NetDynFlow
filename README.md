@@ -67,8 +67,9 @@ The resulting variable `dyncom` is an array of rank-3 with dimensions ((tmax x t
 
 To calculate the evolution of the *Total communicability* and of the *diversity* of the network over time, these are calculated as:
 
-	>>> totalcom = ndf.TotalEvolution(dyncom)
-	>>> divers = ndf.Diversity(dyncom)
+	>>> import netdynflow.metrics as ndf.metrics
+	>>> totalcom = ndf.metrics.TotalEvolution(dyncom)
+	>>> divers = ndf.metrics.Diversity(dyncom)
 
 `totalcom` and `divers` are two numpy arrays of length (tmax x tsteps) = 500.
 
@@ -76,13 +77,13 @@ To calculate the evolution of the *Total communicability* and of the *diversity*
 #### Finding further documentation
 To see the list of all functions available use the standard help in an interactive session, e.g.,
 
-	>>> import netdynflow
-	>>> help(netdynflow)
+	>>> import netdynflow.core
+	>>> help(netdynflow.core)
 
 Same, to find further details of every function within each module:, e.g.,
 
 	>>> help(netdynflow.DynCom)
-	>>> help(netdynflow.Diversity)
+	>>> help(netdynflow.metrics.Diversity)
 
 In an IPython interactive session, or in a Jupyter Notebook, typing `netdynflow` and then pressing <tab> will show all the functions available in the package. In IPython help is requested by typing and interrogation mark after the module or the function name, e.g.,
 
