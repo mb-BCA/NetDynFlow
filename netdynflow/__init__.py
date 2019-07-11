@@ -23,7 +23,7 @@ nodes.
 - 'Dynamic Communicability' corresponds to the special case where uncorrelated
 Gaussian noise has initially been applied to all nodes.
 
-*NetDynFlow* treats networks as connectivity matrices, represented as 2D NumPy
+NetDynFlow treats networks as connectivity matrices, represented as 2D NumPy
 arrays. Given (i) a connectivity matrix and (ii) a an input covariance matrix,
 dynamic communicability and flow return a set of matrices (a 3D NumPy array),
 each describing the state of the state of the pairwise node interations at
@@ -47,32 +47,32 @@ The package is organised into two modules:
 core.py
     Functions to obtain the temporal evolution of dynamic communicability and flow.
 metrics.py
-    Network descriptors to analyse the temporal evolution of the dynamic communicability and flow.
+    Network descriptors to analyse the temporal evolution of the dynamic
+    communicability and flow.
 
 To see the list of all functions available use the standard help in an
 interactive session, for both modules ::
 
->>> help(netdynflow.core)
->>> help(netdynflow.metrics)
+>>> import netdynflow as ndf
+>>> ndf.core?
+>>> ndf.metrics?
 
-Same, to find further details of every function:, e.g.,  ::
+    **NOTE:**
+    Importing NetDynflow brings all functions in the two modules into its
+    local namespace. Thus, functions in each of the two modules are called as
+    `ndf.func()` instead of `ndf.core.func()` or `ndf.metrics.func()`. Details
+    of each function is also found using the usual help, e.g.,
 
->>> help(netdynflow.core.DynCom)
->>> help(netdynflow.metrics.Diversity)
+	>>> ndf.DynCom?
+	>>> ndf.Diversity?
 
 In an IPython interactive session, or in a Jupyter Notebook, typing ``netdynflow``
-and then pressing <tab> will show all the functions available in the package.
-In IPython help is requested by typing and interrogation mark after the module
-or the function name, e.g.,  ::
+and then pressing <tab> will show all the modules and functions available in
+the package.
 
->>> import netdynflow
->>> netdynflow?
->>> netdynflow.DynCom?
->>> netdynflow.metrics.Diversity?
-
-Using netdynflow
+Using NetDynFlow
 ^^^^^^^^^^^^^^^^
-Since *NetDynFlow* depends on NumPy, it is recommended to import NumPy first,
+Since NetDynFlow depends on NumPy, it is recommended to import NumPy first,
 although this is not necessary for loading the package: ::
 
 >>> import numpy as np
@@ -95,34 +95,36 @@ base namespace:  ::
     >>> ...
     >>> dyncom = DynCom(net, tau)
 
-Example
-*******
+Getting started
+***************
 Create a simple weighted network of N = 4 nodes (a numpy array) and compute its
 dynamic communicability over time: ::
 
->>> connet = np.array(((0, 1.2, 0, 0),
+>>> net = np.array(((0, 1.2, 0, 0),
                     (0, 0, 1.1, 0),
                     (0, 0, 0, 0.7),
                     (1.0, 0, 0, 0)), float)
 
 >>> tau = 0.8
->>> dyncom = ndf.DynCom(connet, tau, tmax=15, timestep=0.01)
+>>> dyncom = ndf.DynCom(net, tau, tmax=15, timestep=0.01)
 
 The resulting variable ``dyncom`` is an array of rank-3 with dimensions
-((tmax x tstep) x N x N) containing tmax x tstep = 500 matrices of size 4 x 4,
+((tmax / tstep) x N x N) containing tmax / tstep = 1500 matrices of size 4 x 4,
 each describing the state of the network at a given time step.
 
-**NOTE**: netdynflow employs the convention in graph theory that rows of the
-connectivity matrix encode the outputs of the node. That is, `connect[i,j] = 1`
-implies that the node in row ``i`` projects over the node in column ``j``.
+    **NOTE**:
+    NetDynFlow employs the convention in graph theory that rows of the
+    connectivity matrix encode the outputs of the node. That is, `net[i,j] = 1`
+    implies that the node in row ``i`` projects over the node in column ``j``.
 
-To calculate the evolution of the *Total communicability* and of the ``diversity``
-of the network over time, these are calculated as:  ::
+Now we calculate the *total communicability* and the ``diversity`` of the
+network over time as:  ::
 
 >>> totalcom = ndf.TotalEvolution(dyncom)
 >>> divers = ndf.Diversity(dyncom)
 
-``totalcom`` and ``divers`` are two numpy arrays of length (tmax x tsteps) = 500.
+``totalcom`` and ``divers`` are two arrays of length (tmax / tsteps) = 1500.
+
 
 License
 -------
@@ -149,7 +151,7 @@ __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
 __email__ = "galib@Zamora-Lopez.xyz"
 __copyright__ = "Copyright 2019"
 __license__ = "Apache License version 2.0"
-__version__ = "1.0.0b1"
+__version__ = "1.0.0b2"
 __update__="11/07/2019"
 
 

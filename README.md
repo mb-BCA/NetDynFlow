@@ -77,7 +77,7 @@ The resulting variable `dyncom` is an array of rank-3 with dimensions ((tmax x t
 
 > **NOTE**: *NetDynFlow* employs the convention in graph theory that rows of the connectivity matrix encode the outputs of the node. That is, `net[i,j] = 1` implies that the node in row `i` projects over the node in column `j`.
 
-Now we calculate the *total communicability* and *diversity* of the network over time, these are calculated as:
+Now we calculate the *total communicability* and *diversity* of the network over time as:
 
 	>>> totalcom = ndf.TotalEvolution(dyncom)
 	>>> divers = ndf.Diversity(dyncom)

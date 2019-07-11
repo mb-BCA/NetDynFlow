@@ -13,11 +13,11 @@ Calculation of dynamic communicability and flow
 ===============================================
 
 This module contains functions to calculate the temporal evolution of the
-dynamic communicability and flow. Networks are
-treated as connectevity matrices, represented as 2D NumPy arrays. Given a
-connectivity matrix, dynamic communicability and flow return a series of
-matrices arranged into a tensor (an numpy array of rank-3), each describing the
-state of the network at consecutive time points.
+dynamic communicability and flow. Networks are treated as connectevity
+matrices, represented as 2D NumPy arrays. Given a connectivity matrix, dynamic
+communicability and flow return a series of matrices arranged into a tensor
+(a numpy array of rank-3), each describing the state of the network at
+consecutive time points.
 
 Generation of main tensors
 --------------------------
@@ -38,17 +38,11 @@ cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
 from fMRI data: A new framework based on communicability and flow"
 bioRxiv (2018). DOI: https://doi.org/10.1101/421883.
 
+
+...moduleauthor:: Gorka Zamora-Lopez <galib@zamora-lopez.xyz>
+
 """
 from __future__ import division, print_function
-
-# Q: Shall these go here, in the module file, or in the __init__,py file?
-# ... or even somewhere else?
-__author__ = "Gorka Zamora-Lopez, Mattheiu Gilson and Nikos Kouvaris"
-__email__ = "galib@Zamora-Lopez.xyz"
-__copyright__ = "Copyright 2018"
-__license__ = "GPL"
-__update__="18/09/2018"
-__version__="0.0.1.dev0"
 
 import numpy as np
 import numpy.linalg

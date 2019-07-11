@@ -12,8 +12,8 @@
 Analysis of dynamic communicability and flow
 ============================================
 
-This module contains functions to analyse the dynamic communicability or flow
-from a given network to extract information of its structure and function.
+Functions to analyse the dynamic communicability or flow "tensors", which have
+been previously calculated from a given network.
 
 Metrics derived from the tensors
 --------------------------------
@@ -25,7 +25,7 @@ Diversity
     Temporal diversity for a networks dynamic communicability or flow.
 TTPdistance
     Pair-wise node distance, measured as the time-to-peak of their interaction.
-    TO BE WRITTEN AND ADDED !! I NEED TO INCLUD THE TEMPORAL RESOLUTION
+    TO BE WRITTEN AND ADDED !! INCLUDE THE TEMPORAL RESOLUTION !!
 
 Reference and Citation
 ----------------------
@@ -34,24 +34,19 @@ cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
 2. M. Gilson, N. Kouvaris, et al. "Analysis of brain network dynamics estimated
 from fMRI data: A new framework based on communicability and flow"
 bioRxiv (2018). DOI: https://doi.org/10.1101/421883.
+
+
+...moduleauthor:: Gorka Zamora-Lopez <galib@zamora-lopez.xyz>
+
 """
 from __future__ import division, print_function
-
-# Q: Shall these go here, in the module file, or in the __init__,py file?
-# ... or even somewhere else?
-__author__ = "Gorka Zamora-Lopez, Mattheiu Gilson and Nikos Kouvaris"
-__email__ = "galib@Zamora-Lopez.xyz"
-__copyright__ = "Copyright 2018"
-__license__ = "GPL"
-__update__="18/09/2018"
-__version__="0.0.1.dev0"
 
 import numpy as np
 import numpy.linalg
 import scipy.linalg
 
 
-## METRICS FROM THE TENSORS ###################################################
+## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
 def TotalEvolution(dyntensor):
     """Calculates total communicability or flow over time for a network.
 
