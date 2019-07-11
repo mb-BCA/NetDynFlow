@@ -67,7 +67,7 @@ The resulting variable `dyncom` is an array of rank-3 with dimensions ((tmax x t
 
 To calculate the evolution of the *Total communicability* and of the *diversity* of the network over time, these are calculated as:
 
-	>>> import netdynflow.metrics as ndf.metrics
+	>>> import netdynflow as ndf
 	>>> totalcom = ndf.metrics.TotalEvolution(dyncom)
 	>>> divers = ndf.metrics.Diversity(dyncom)
 
