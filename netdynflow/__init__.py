@@ -140,7 +140,9 @@ or see the LICENSE.txt file.
 from __future__ import absolute_import
 
 from . import core
-from .core import*
+from .core import *
+from . import metrics
+from .metrics import *
 
 
 __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
@@ -148,7 +150,7 @@ __email__ = "galib@Zamora-Lopez.xyz"
 __copyright__ = "Copyright 2019"
 __license__ = "Apache License version 2.0"
 __version__ = "1.0.0b1"
-__update__="10/07/2019"
+__update__="11/07/2019"
 
 
 #

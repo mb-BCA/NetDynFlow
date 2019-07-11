@@ -15,11 +15,11 @@ Graph theory constitutes a widely used and established field providing powerful 
 
 ### INSTALLATION
 
-Installation of NetDynFlow is simple. An existing python distribution and the [pip](https://github.com/pypa/pip) package manager need to be installed. If Python was installed via the [Canopy](https://www.enthought.com/product/canopy/) or the [Anaconda](https://www.anaconda.com) distributions, then pip is surely installed. To check, open a terminal and type:
+Installation of *NetDynFlow* is simple. An existing python distribution and the [pip](https://github.com/pypa/pip) package manager need to be installed. If Python was installed via the [Canopy](https://www.enthought.com/product/canopy/) or the [Anaconda](https://www.anaconda.com) distributions, then pip is surely installed. To check, open a terminal and type:
 
 	$ pip --help
 
-NetDynFlow is still not registered in PyPI (the Python Packages Index) and installation follows directly from GitHub. However, pip will automatically take care of the  dependencies (see the *requirements.txt* file). There are two alternative manners to install: the easy and the lazy. 
+*NetDynFlow* is still not registered in PyPI (the Python Packages Index) and installation follows directly from GitHub. However, pip will automatically take care of the  dependencies (see the *requirements.txt* file). There are two alternative manners to install: the easy and the lazy. 
 
 **- The easy installation**: Visit the GitHub repository [https://github.com/gorkazl/NetDynFlow/](https://github.com/gorkazl/NetDynFlow/) and click on the "Clone or download" button at the right hand side (the green button). Select "Download ZIP". Unzip the file, open a terminal and move to the folder, e.g.,
 
@@ -29,7 +29,7 @@ Once on the folder that contains the *setup.py* file, type the following
 
 	$ pip install .
 
-Do not forget the "." at the end which means "*look for the setup.py file in the current directory*." This will check for the dependencies and install NetDynFlow. To confirm the installation open an interactive session and try to import the library by typing `import netdynflow`.
+Do not forget the "." at the end which means "*look for the setup.py file in the current directory*." This will check for the dependencies and install *NetDynFlow*. To confirm the installation open an interactive session and try to import the library by typing `import netdynflow`.
 
 > **NOTE**: After installation the current folder "*~/Downloads/NetDynFlow-master/*" can be safely deleted, or moved somewhere else if you want to conserve the examples and the tests.
 
@@ -40,57 +40,49 @@ Do not forget the "." at the end which means "*look for the setup.py file in the
 This will install the package, that is, the content in the folder *netdynflow/*. Other files (Examples/, README.md, LICENSE.txt, etc.) need to be downloaded manually, if wanted.
 
 
-> **NOTE:** If you are using Python 2 and Python 3 environments, NetDynFlow needs to be installed in each of the environments.
+> **NOTE:** If you are using Python 2 and Python 3 environments, *NetDynFlow* needs to be installed in each of the environments.
 
 
 
-### HOW TO USE NetDynFlow
+### HOW TO USE *NetDynFlow*
+
+The package is organised into two modules:
+
+- *core.py*: Functions to obtain the temporal evolution of dynamic communicability and flow.
+- *metrics.py*: Network descriptors to analyse the temporal evolution of the dynamic communicability and flow.
+
+To see the list of all functions available use the standard help in an interactive session, e.g.,
+
+	>>> import netdynflow as ndf
+	>>> ndf.core?
+	>>> ndf.metrics?
+
+>**NOTE:** Importing *NetDynflow* brings all functions in the two modules into its local namespace. Thus, functions in each of the two modules are called as `ndf.func()` instead of `ndf.core.func()` or `ndf.metrics.func()`. Details of each function is also found using the usual help, e.g.,
+
+	>>> ndf.DynCom?
+	>>> ndf.Diversity?
+
 
 #### Getting started 
-Since NetDynFlow depends on NumPy, it is recommended to import NumPy first, although this is not necessary for loading the package:
+Create a simple weighted network of N = 4 nodes (a numpy array) and compute its dynamic communicability over time:
 
-	>>> import numpy as np
-	>>> import netdynflow as ndf
-
-will load all the functions in the package into the namespace of NetDynFlow. Create a simple weighted network of N = 4 nodes (a numpy array) and compute its dynamic communicability over time:
-
-	>>> connet = np.array((	(0, 1.2, 0, 0),
+	>>> net = np.array((	(0, 1.2, 0, 0),
 							(0, 0, 1.1, 0),
 							(0, 0, 0, 0.7),
 							(1.0, 0, 0, 0)), float)
 	>>> tau = 0.8
-	>>> dyncom = ndf.DynCom(connet, tau, tmax=15, timestep=0.01)
+	>>> dyncom = ndf.DynCom(net, tau, tmax=15, timestep=0.01)
 
-The resulting variable `dyncom` is an array of rank-3 with dimensions ((tmax x tstep) x N x N) containing tmax x tstep = 500 matrices of size 4 x 4, each describing the state of the network at a given time step. 
+The resulting variable `dyncom` is an array of rank-3 with dimensions ((tmax x tstep) x N x N) containing tmax / tstep = 1500 matrices of size 4 x 4, each describing the state of the network at a given time step. 
 
-*NOTE: 'NetDynFlow' employs the convention in graph theory that rows of the connectivity matrix encode the outputs of the node. That is, `connect[i,j] = 1` implies that the node in row `i` projects over the node in column `j`.*
+> **NOTE**: *NetDynFlow* employs the convention in graph theory that rows of the connectivity matrix encode the outputs of the node. That is, `net[i,j] = 1` implies that the node in row `i` projects over the node in column `j`.
 
-To calculate the evolution of the *Total communicability* and of the *diversity* of the network over time, these are calculated as:
+Now we calculate the *total communicability* and *diversity* of the network over time, these are calculated as:
 
-	>>> import netdynflow as ndf
-	>>> totalcom = ndf.metrics.TotalEvolution(dyncom)
-	>>> divers = ndf.metrics.Diversity(dyncom)
+	>>> totalcom = ndf.TotalEvolution(dyncom)
+	>>> divers = ndf.Diversity(dyncom)
 
-`totalcom` and `divers` are two numpy arrays of length (tmax x tsteps) = 500.
-
-
-#### Finding further documentation
-To see the list of all functions available use the standard help in an interactive session, e.g.,
-
-	>>> import netdynflow.core
-	>>> help(netdynflow.core)
-
-Same, to find further details of every function within each module:, e.g.,
-
-	>>> help(netdynflow.DynCom)
-	>>> help(netdynflow.metrics.Diversity)
-
-In an IPython interactive session, or in a Jupyter Notebook, typing `netdynflow` and then pressing <tab> will show all the functions available in the package. In IPython help is requested by typing and interrogation mark after the module or the function name, e.g.,
-
-	>>> import netdynflow
-	>>> netdynclow?
-	>>> netdynflow.DynComTensor?
-	>>> netdynflow.Diversity?
+`totalcom` and `divers` are two numpy arrays of length (tmax / tsteps) = 1500.
 
 
 ### LICENSE
@@ -114,6 +106,6 @@ limitations under the License.
 ### VERSION HISTORY
 
 ##### July 10, 2019
-First release of NetDynFlow (Beta).
+First release of *NetDynFlow* (Beta).
 
 
