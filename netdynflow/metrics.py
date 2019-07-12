@@ -82,10 +82,11 @@ def NodeEvolution(dyntensor, directed=False):
 
     Returns
     -------
-    nodedyncom : ndarray of rank-2 or tuple.
-        Temporal evolution of communicability of each node. Array of shape
-        (N x timesteps). If 'directed=True', 'nodedyncom' is an array of
-        length two, with the input and the output communi
+    nodedyncom : tuple.
+        Temporal evolution of the communicability or flow for all nodes.
+        The result consists of a tuple of two ndarrays of shape (N x timesteps)
+        each. The first is for the inputs to the node and the second for its
+        outputs.
     """
     # 0) SECURITY CHECKS
     tensorshape = np.shape(dyntensor)
