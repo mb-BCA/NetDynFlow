@@ -156,7 +156,15 @@ def GenerateTensors1(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
     sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
 
     flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    if case == 'DynFlow':
+    if case == 'DynCom':
+        for i_t in range(n_t):
+            t = i_t * timestep
+            # Calculate the term for jacobian_diag without using expm(), to speed up
+            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
+            # Calculate the dynamic communicability at time t
+            flow_tensor[i_t] = scipy.linalg.expm(jacobian * t) - jacobian_diag_t
+
+    elif case == 'DynFlow':
         for i_t in range(n_t):
             t = i_t * timestep
             # Calculate the term for jacobian_diag without using expm(), to speed up
@@ -164,14 +172,6 @@ def GenerateTensors1(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
             # Calculate the dynamic communicability at time t
             flow_tensor[i_t] = np.dot( sigma_mat, \
                             (scipy.linalg.expm(jacobian * t) - jacobian_diag_t) )
-
-    elif case == 'DynCom':
-        for i_t in range(n_t):
-            t = i_t * timestep
-            # Calculate the term for jacobian_diag without using expm(), to speed up
-            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-            # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = scipy.linalg.expm(jacobian * t) - jacobian_diag_t
 
     elif case == 'IntrinsicFlow':
         for i_t in range(n_t):
