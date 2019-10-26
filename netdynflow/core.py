@@ -51,6 +51,51 @@ import scipy.linalg
 __all__ = ['JaccobianMOU', 'DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
 
+## USEFUL FUNCTIONS ##########################################################
+def JacobianMOU(con_matrix, tau_const):
+    """Write me here
+    Parameters
+    ----------
+    con_matrix : ndarray of rank-2
+        The adjacency matrix of the network.
+    tau_const : real valued number, or ndarray of rank-1
+        The decay rate at the nodes. Positive value expected.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
+
+    Returns
+    -------
+    jaccobian : ndarray of rank-2
+        The Jaccobian matrix of shape N x N for the MOU dynamical system.
+    """
+    # 0) SECURITY CHECKS
+    # Check the input connectivity matrix
+    con_shape = shape(con_matrix)
+    if len(con_shape) != 2: raise ValueError( "con_matrix not a matrix." )
+    if con_shape[0] != con_shape[1]: raise ValueError( "con_matrix not a square matrix." )
+    # Make sure con_matrix is a ndarray of dtype = np.float64
+    con_matrix = np.array(con_matrix, dtype=np.float)
+    n_nodes = con_shape[0]
+
+    # Check the tau constant, in case it is a 1-dimensional array-like.
+    tau_shape = shape(tau_const)
+    if tau_shape:
+        if len(tau_shape) != 1: raise ValueError( "tau_const must be either a float or a 1D array." )
+        if tau_shape[0] != n_nodes: raise ValueError( "con_matrix and tau_const not aligned." )
+        # Make sure tau_const is a ndarray of dytpe = np.float64
+        tau_const = np.array(tau_const, dtype=np.float)
+    else:
+        tau_const = tau_const * np.ones(n_nodes, dtype=np.float)
+
+    # 1) CALCULATE THE JACCOBIAN MATRIX
+    jacobian_diag = -np.ones(n_nodes, dtype=np.float) / tau_const
+    jacobian = np.diag(jacobian_diag) + con_matrix
+
+    return jacobian
+
+
+
 ## THE MAIN TENSORS ##########################################################
 def DynCom(con_matrix, tau_const, tmax=20, timestep=0.1, normed=True):
     """Returns the temporal evolution of a network's dynamic communicability.
@@ -239,9 +284,7 @@ def IntrinsicFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, norme
 
     return flow_tensor
 
-
-def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
-                                            normed=True):
+def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=True):
     """Returns the complete flow on a network over time for a given input.
 
     Parameters
