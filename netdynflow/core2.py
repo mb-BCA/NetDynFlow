@@ -108,6 +108,7 @@ def JacobianMOU(con_matrix, tau_const):
 ## GENERATION OF THE MAIN TENSORS #############################################
 def GenerateTensors1(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
                     normed=True, case='DynCom'):
+    ## GORKA: Function probably needs another name.
     """Returns the chosen flavour of flow on a network over time.
 
     Parameters
@@ -196,6 +197,7 @@ def GenerateTensors1(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
 
 def GenerateTensors2(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
                     normed=True, case='DynCom'):
+    ## GORKA: Function probably needs another name.
     """Returns the chosen flavour of flow on a network over time.
 
     Parameters
@@ -296,39 +298,14 @@ def DynFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=True
 
     Returns
     -------
-    flow_tensor : ndarray of rank-3
+    dynflow_tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
+    dynflow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+                    timestep=timestep, normed=normed, case='DynFlow')
 
-    # 1) CALCULATE THE JACOBIAN MATRIX
-    jacobian = JacobianMOU(con_matrix, tau_const)
-    jacobian_diag = np.diagonal(jacobian)
-
-    # 2) CALCULATE THE DYNAMIC FLOW
-    # 2.1) Calculate the extrinsic flow over integration time
-    n_t = int(tmax / timestep) + 1
-    sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
-
-    flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    for i_t in range(n_t):
-        t = i_t * timestep
-        # Calculate the term for jacobian_diag without using expm(), to speed up
-        jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-        # Calculate the dynamic communicability at time t
-        flow_tensor[i_t] = np.dot( sigma_mat, \
-                        (scipy.linalg.expm(jacobian * t) - jacobian_diag_t) )
-
-    # 2.2) Normalise by the scaling factor
-    if normed:
-        scaling_factor = (-1./jacobian_diag).sum()
-        flow_tensor /= scaling_factor
-
-    return flow_tensor
+    return dynflow_tensor
 
 def DynCom(con_matrix, tau_const, tmax=20, timestep=0.1, normed=True):
     """Returns the temporal evolution of a network's dynamic communicability.
@@ -357,32 +334,8 @@ def DynCom(con_matrix, tau_const, tmax=20, timestep=0.1, normed=True):
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-
-    # 1) CALCULATE THE JACOBIAN MATRIX
-    jacobian = JacobianMOU(con_matrix, tau_const)
-    jacobian_diag = np.diagonal(jacobian)
-
-    # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
-    # 2.1) Calculate the extrinsic flow over integration time
-    n_t = int(tmax / timestep) + 1
-    sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
-
-    dyncom_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    for i_t in range(n_t):
-        t = i_t * timestep
-        # Calculate the term for jacobian_diag without using expm(), to speed up
-        jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-        # Calculate the dynamic communicability at time t
-        dyncom_tensor[i_t] = scipy.linalg.expm(jacobian * t) - jacobian_diag_t
-
-    # 2.2) Normalise by the scaling factor
-    if normed:
-        scaling_factor = (-1./jacobian_diag).sum()
-        dyncom_tensor /= scaling_factor
+    dyncom_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+                    timestep=timestep, normed=normed, case='DynCom')
 
     return dyncom_tensor
 
@@ -415,31 +368,8 @@ def IntrinsicFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, norme
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-
-    # 1) CALCULATE THE JACOBIAN MATRIX
-    jacobian = JacobianMOU(con_matrix, tau_const)
-    jacobian_diag = np.diagonal(jacobian)
-
-    # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
-    # 2.1) Calculate the extrinsic flow over integration time
-    n_t = int(tmax / timestep) + 1
-    sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
-
-    flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    for i_t in range(n_t):
-        t = i_t * timestep
-        # Calculate the term for jacobian_diag without using expm(), to speed up
-        jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-        # Calculate the dynamic communicability at time t.
-        flow_tensor[i_t] = np.dot( sigma_mat, jacobian_diag_t)
-
-    # 1.3) Normalise by the scaling factor
-    if normed:
-        flow_tensor /= scaling_factor
+    flow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+                    timestep=timestep, normed=normed, case='DynFlow')
 
     return flow_tensor
 
@@ -471,44 +401,10 @@ def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=Tru
         Temporal evolution of the network's flow. A tensor of shape
         (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-
-    # 1) CALCULATE THE JACOBIAN MATRIX
-    jacobian = JacobianMOU(con_matrix, tau_const)
-    jacobian_diag = np.diagonal(jacobian)
-
-    # 2) CALCULATE THE DYNAMIC FLOW
-    # 2.1) Calculate the extrinsic flow over integration time
-    n_t = int(tmax / timestep) + 1
-    sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
-
-    flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    for i_t in range(n_t):
-        t = i_t * timestep
-        # Calculate the non-normalised flow at time t.
-        flow_tensor[i_t] = np.dot( sigma_mat, scipy.linalg.expm(jacobian * t) )
-
-    # 2.2) Normalise by the scaling factor
-    if normed:
-        scaling_factor = (-1./jacobian_diag).sum()
-        flow_tensor /= scaling_factor
+    flow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+                    timestep=timestep, normed=normed, case='FullFlow')
 
     return flow_tensor
-
-## GORKA: Nice try, but this one seems very inefficient to me.
-## It iterates twice through time.
-# def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=True):
-#     """Returns the complete flow on a network over time for a given input.
-#
-#     ...
-#     """
-#     flow_tensor = DynFlow(con_matrix, tau_const, np.eye(n_nodes), tmax, timestep, normed) \
-#                + IntrinsicFlow(con_matrix, tau_const, np.eye(n_nodes), tmax, timestep, normed)
-#
-#     return flow_tensor
 
 
 ##
