@@ -19,6 +19,11 @@ communicability and flow return a series of matrices arranged into a tensor
 (a numpy array of rank-3), each describing the state of the network at
 consecutive time points.
 
+Helper functions
+----------------
+JacobianMOU
+    Calculates the Jacobian matrix for the MOU dynamic system.
+
 Generation of main tensors
 --------------------------
 DynCom
@@ -53,7 +58,8 @@ import scipy.linalg
 
 ## USEFUL FUNCTIONS ##########################################################
 def JacobianMOU(con_matrix, tau_const):
-    """Write me here
+    """Calculates the Jacobian matrix for the MOU dynamic system.
+    
     Parameters
     ----------
     con_matrix : ndarray of rank-2
