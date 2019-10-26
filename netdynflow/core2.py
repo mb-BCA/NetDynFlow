@@ -244,36 +244,23 @@ def GenerateTensors2(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
     sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
 
     flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
-    if case == 'DynCom':
-        for i_t in range(n_t):
-            t = i_t * timestep
-            # Calculate the term for jacobian_diag without using expm(), to speed up
-            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-            # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = scipy.linalg.expm(jacobian * t) - jacobian_diag_t
-
-    elif case == 'DynFlow':
-        for i_t in range(n_t):
-            t = i_t * timestep
-            # Calculate the term for jacobian_diag without using expm(), to speed up
-            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-            # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = np.dot( sigma_mat, \
-                            (scipy.linalg.expm(jacobian * t) - jacobian_diag_t) )
-
-    elif case == 'IntrinsicFlow':
-        for i_t in range(n_t):
-            t = i_t * timestep
-            # Calculate the term for jacobian_diag without using expm(), to speed up
-            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
-            # Calculate the dynamic communicability at time t.
-            flow_tensor[i_t] = np.dot( sigma_mat, jacobian_diag_t)
-
-    elif case == 'FullFlow':
-        for i_t in range(n_t):
-            t = i_t * timestep
-            # Calculate the non-normalised flow at time t.
+    ## GORKA: This may look more elegant or clear because it puts all options
+    ## into a single loop over time. But I don't think this is will be efficient.
+    ## I bet it is notably slower than the separate loops in GenerateTensors1().
+    for i_t in range(n_t):
+        t = i_t * timestep
+        if case == 'FullFlow':
             flow_tensor[i_t] = np.dot( sigma_mat, scipy.linalg.expm(jacobian * t) )
+        else:
+            # Calculate the term for jacobian_diag without using expm(), to speed up
+            jacobian_diag_t = np.diag( np.exp(jacobian_diag * t) )
+            if case == 'DynCom':
+                flow_tensor[i_t] = scipy.linalg.expm(jacobian * t) - jacobian_diag_t
+            elif case == 'DynFlow':
+                flow_tensor[i_t] = np.dot( sigma_mat, \
+                                (scipy.linalg.expm(jacobian * t) - jacobian_diag_t) )
+            elif case == 'IntrinsicFlow':
+                flow_tensor[i_t] = np.dot( sigma_mat, jacobian_diag_t)
 
     # 2.2) Normalise by the scaling factor
     if normed:
