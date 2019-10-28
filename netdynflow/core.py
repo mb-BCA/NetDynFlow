@@ -59,7 +59,7 @@ import scipy.linalg
 ## USEFUL FUNCTIONS ##########################################################
 def JacobianMOU(con_matrix, tau_const):
     """Calculates the Jacobian matrix for the MOU dynamic system.
-    
+
     Parameters
     ----------
     con_matrix : ndarray of rank-2
@@ -77,7 +77,7 @@ def JacobianMOU(con_matrix, tau_const):
     """
     # 0) SECURITY CHECKS
     # Check the input connectivity matrix
-    con_shape = shape(con_matrix)
+    con_shape = np.shape(con_matrix)
     if len(con_shape) != 2:
         raise ValueError( "con_matrix not a matrix." )
     if con_shape[0] != con_shape[1]:
@@ -87,7 +87,7 @@ def JacobianMOU(con_matrix, tau_const):
     n_nodes = con_shape[0]
 
     # Check the tau constant, in case it is a 1-dimensional array-like.
-    tau_shape = shape(tau_const)
+    tau_shape = np.shape(tau_const)
     if tau_shape:
         if len(tau_shape) != 1:
             raise ValueError( "tau_const must be either a float or a 1D array." )
@@ -143,6 +143,7 @@ def DynFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=True
     # 1) CALCULATE THE JACOBIAN MATRIX
     jacobian = JacobianMOU(con_matrix, tau_const)
     jacobian_diag = np.diagonal(jacobian)
+    n_nodes = len(jacobian)
 
     # 2) CALCULATE THE DYNAMIC FLOW
     # 2.1) Calculate the extrinsic flow over integration time
@@ -200,11 +201,11 @@ def DynCom(con_matrix, tau_const, tmax=20, timestep=0.1, normed=True):
     # 1) CALCULATE THE JACOBIAN MATRIX
     jacobian = JacobianMOU(con_matrix, tau_const)
     jacobian_diag = np.diagonal(jacobian)
+    n_nodes = len(jacobian)
 
     # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
     # 2.1) Calculate the extrinsic flow over integration time
     n_t = int(tmax / timestep) + 1
-    sigma_sqrt_mat = scipy.linalg.sqrtm(sigma_mat)
 
     dyncom_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
     for i_t in range(n_t):
@@ -258,6 +259,7 @@ def IntrinsicFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, norme
     # 1) CALCULATE THE JACOBIAN MATRIX
     jacobian = JacobianMOU(con_matrix, tau_const)
     jacobian_diag = np.diagonal(jacobian)
+    n_nodes = len(jacobian)
 
     # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
     # 2.1) Calculate the extrinsic flow over integration time
@@ -274,6 +276,7 @@ def IntrinsicFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, norme
 
     # 1.3) Normalise by the scaling factor
     if normed:
+        scaling_factor = (-1./jacobian_diag).sum()
         flow_tensor /= scaling_factor
 
     return flow_tensor
@@ -314,6 +317,7 @@ def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=Tru
     # 1) CALCULATE THE JACOBIAN MATRIX
     jacobian = JacobianMOU(con_matrix, tau_const)
     jacobian_diag = np.diagonal(jacobian)
+    n_nodes = len(jacobian)
 
     # 2) CALCULATE THE DYNAMIC FLOW
     # 2.1) Calculate the extrinsic flow over integration time

@@ -79,7 +79,7 @@ def JacobianMOU(con_matrix, tau_const):
     """
     # 0) SECURITY CHECKS
     # Check the input connectivity matrix
-    con_shape = shape(con_matrix)
+    con_shape = np.shape(con_matrix)
     if len(con_shape) != 2:
         raise ValueError( "con_matrix not a matrix." )
     if con_shape[0] != con_shape[1]:
@@ -89,7 +89,7 @@ def JacobianMOU(con_matrix, tau_const):
     n_nodes = con_shape[0]
 
     # Check the tau constant, in case it is a 1-dimensional array-like.
-    tau_shape = shape(tau_const)
+    tau_shape = np.shape(tau_const)
     if tau_shape:
         if len(tau_shape) != 1:
             raise ValueError( "tau_const must be either a float or a 1D array." )
@@ -152,6 +152,7 @@ def GenerateTensors(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1,
     # 1) CALCULATE THE JACOBIAN MATRIX
     jacobian = JacobianMOU(con_matrix, tau_const)
     jacobian_diag = np.diagonal(jacobian)
+    n_nodes = len(jacobian)
 
     # 2) CALCULATE THE DYNAMIC FLOW
     # 2.1) Calculate the extrinsic flow over integration time
@@ -228,7 +229,7 @@ def DynFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=True
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is the number of nodes.
     """
-    dynflow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+    dynflow_tensor = GenerateTensors(con_matrix, tau_const, sigma_mat, tmax=tmax,
                     timestep=timestep, normed=normed, case='DynFlow')
 
     return dynflow_tensor
@@ -260,7 +261,9 @@ def DynCom(con_matrix, tau_const, tmax=20, timestep=0.1, normed=True):
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    dyncom_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
+    n_nodes = len(con_matrix)
+    sigma_mat = np.identity(n_nodes, dtype=np.float)
+    dyncom_tensor = GenerateTensors(con_matrix, tau_const, sigma_mat, tmax=tmax,
                     timestep=timestep, normed=normed, case='DynCom')
 
     return dyncom_tensor
@@ -294,8 +297,8 @@ def IntrinsicFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, norme
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    flow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
-                    timestep=timestep, normed=normed, case='DynFlow')
+    flow_tensor = GenerateTensors(con_matrix, tau_const, sigma_mat, tmax=tmax,
+                    timestep=timestep, normed=normed, case='IntrinsicFlow')
 
     return flow_tensor
 
@@ -327,8 +330,8 @@ def FullFlow(con_matrix, tau_const, sigma_mat, tmax=20, timestep=0.1, normed=Tru
         Temporal evolution of the network's flow. A tensor of shape
         (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    flow_tensor = GenerateTensors(con_matrix, tau_const, tmax=tmax,
-                    timestep=timestep, normed=normed, case='FullFlow')
+    flow_tensor = GenerateTensors(con_matrix, tau_const, sigma_mat, tmax=tmax,
+                            timestep=timestep, normed=normed, case='FullFlow')
 
     return flow_tensor
 
