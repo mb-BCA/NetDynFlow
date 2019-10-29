@@ -10,7 +10,10 @@ Graph theory constitutes a widely used and established field providing powerful 
 #### Reference and Citation
 
 * M. Gilson, N. Kouvaris, G. Deco and G. Zamora-Lopez "*[Framework based on communicability and flow to analyze complex networks](https://journals.aps.org/pre/abstract/10.1103/PhysRevE.97.052301)*" Phys. Rev. E **97**, 052301 (2018).
-* M. Gilson, N. Kouvaris, et al. "*Analysis of brain network dynamics estimated from fMRI data: A new framework based on communicability and flow*" bioRxiv (2018). [DOI: 10.1101/421883](https://doi.org/10.1101/421883)
+* M. Gilson, N. Kouvaris, et al. "*[Network analysis of whole-brain fMRI
+dynamics: A new framework based on dynamic communicability](https://doi.org/10.1016/j.neuroimage.2019.116007)*" NeuroImage 201,
+116007 (2019).
+
 
 
 ### INSTALLATION
