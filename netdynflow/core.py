@@ -52,7 +52,7 @@ import numpy as np
 import numpy.linalg
 import scipy.linalg
 
-__all__ = ['JaccobianMOU', 'DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
+__all__ = ['JacobianMOU', 'DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
 
 ## USEFUL FUNCTIONS ##########################################################
