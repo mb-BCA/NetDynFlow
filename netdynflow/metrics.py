@@ -32,9 +32,6 @@ cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
 dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 116007 (2019).
 
-
-...moduleauthor:: Gorka Zamora-Lopez <galib@zamora-lopez.xyz>
-
 """
 from __future__ import division, print_function
 
