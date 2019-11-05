@@ -20,6 +20,7 @@ List here the agreed name changes:
 - jacdiag <-- jacobian_diag (in NetDynFlow.core)
 - tau 	<-- tau_x (in pyMOU.mou_model), tau_const (in NetDynFlow.core)
 - con 	<- C (in pyMOU.mou_model), con_matrix (in NetDynFlow.core)
+- tensor	<-- dyn_tensor (in NetDynFlow.metrics)
 - sigma or incov <-- Sigma (in pyMOU.mou_model)
 - cov0, covlag <-- Q0, Qtau (in pyMOU.mou_model)
 - lag 	<- tau (in pyMOU.mou_model.Mou.fit_LO)
