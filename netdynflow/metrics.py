@@ -41,12 +41,12 @@ import scipy.linalg
 
 
 ## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
-def TotalEvolution(dyn_tensor):
+def TotalEvolution(tensor):
     """Calculates total communicability or flow over time for a network.
 
     Parameters
     ----------
-    dyn_tensor : ndarray of rank-3
+    tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape timesteps x n_nodes x n_nodes, where n_nodes is the number of nodes.
 
@@ -56,21 +56,21 @@ def TotalEvolution(dyn_tensor):
         Array containing temporal evolution of the total communicability.
     """
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(dyn_tensor)
+    tensor_shape = np.shape(tensor)
     assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
     n_t, n1, n2 = tensor_shape
     assert n1 == n2, 'Input not aligned. Shape (n_t x n_nodes x n_nodes) expected'
 
-    totaldyncom = dyn_tensor.sum(axis=(1,2))
+    totaldyncom = tensor.sum(axis=(1,2))
 
     return totaldyncom
 
-def NodeEvolution(dyn_tensor, directed=False):
+def NodeEvolution(tensor, directed=False):
     """Temporal evolution of all nodes' input and output communicability or flow.
 
     Parameters
     ----------
-    dyn_tensor : ndarray of rank-3
+    tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape timesteps x n_nodes x n_nodes, where n_nodes is the number of nodes.
 
@@ -83,24 +83,24 @@ def NodeEvolution(dyn_tensor, directed=False):
         inputs of each node and the second for its outputs.
     """
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(dyn_tensor)
+    tensor_shape = np.shape(tensor)
     assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
     n_t, n1, n2 = tensor_shape
     assert n1 == n2, 'Input not aligned. Shape (timesteps x n_nodes x n_nodes) expected'
 
     # 1) Calculate the input and output node properties
-    innodedyn = dyn_tensor.sum(axis=1)
-    outnodedyn = dyn_tensor.sum(axis=2)
+    innodedyn = tensor.sum(axis=1)
+    outnodedyn = tensor.sum(axis=2)
     nodedyn = ( innodedyn, outnodedyn )
 
     return nodedyn
 
-def Diversity(dyn_tensor):
+def Diversity(tensor):
     """Temporal diversity for a networks dynamic communicability or flow.
 
     Parameters
     ----------
-    dyn_tensor : ndarray of rank-3
+    tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability or flow. A
         tensor of shape timesteps x N x N, where N is the number of nodes.
 
@@ -110,7 +110,7 @@ def Diversity(dyn_tensor):
         Array containing temporal evolution of the diversity.
     """
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(dyn_tensor)
+    tensor_shape = np.shape(tensor)
     assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
     n_t, n1, n2 = tensor_shape
     assert n1 == n2, 'Input not aligned. Shape (n_t x n_nodes x n_nodes) expected'
@@ -118,7 +118,7 @@ def Diversity(dyn_tensor):
     diversity = np.zeros(n_t, np.float)
     diversity[0] = np.nan
     for i_t in range(1,n_t):
-        diversity[i_t] = dyn_tensor[i_t].std() / dyn_tensor[i_t].mean()
+        diversity[i_t] = tensor[i_t].std() / tensor[i_t].mean()
 
     return diversity
 
