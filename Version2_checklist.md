@@ -7,6 +7,7 @@ Make sure these points are fixed before release of v2.0.0 of NetDynFlow.
 3. Correctly cite the published papers everywhere ( README.md, `__init__.py`, etc. )
 4. Simplify internal variable naming. Homogenize internal naming with pyMOU package.
 5. Add a folder with tutorial Jupyter Notebooks.
+6. Variabla `sigma_sqrt`not used !! I must have done something wrong. 
 
 
 
