@@ -26,16 +26,16 @@ JacobianMOU
 
 Generation of main tensors
 --------------------------
-GenerateTensors
+CalcTensor
     Generic function to create time evolution of communicability or flow.
 DynCom
     Returns the temporal evolution of a network's dynamic communicability.
 DynFlow
     Returns the extrinsinc flow on a network over time for a given input.
-FullFlow
-    Returns the complete flow on a network over time for a given input.
 IntrinsicFlow
     Returns the intrinsic flow on a network over time for a given input.
+FullFlow
+    Returns the complete flow on a network over time for a given input.
 
 Reference and Citation
 ----------------------
