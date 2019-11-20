@@ -35,9 +35,9 @@ Reference and Citation
 1. M. Gilson, N. Kouvaris, G. Deco & G.Zamora-Lopez "Framework based on communi-
 cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
 
-2. M. Gilson, N. Kouvaris, et al. "Analysis of brain network dynamics estimated
-from fMRI data: A new framework based on communicability and flow"
-bioRxiv (2018). DOI: https://doi.org/10.1101/421883.
+2. M. Gilson, N. Kouvaris, et al. "Network analysis of whole-brain fMRI
+dynamics: A new framework based on dynamic communicability" NeuroImage 201,
+116007 (2019).
 
 Available functions
 *******************
@@ -141,6 +141,7 @@ or see the LICENSE.txt file.
 """
 from __future__ import absolute_import
 
+# Branch to test different options to organise the core.py module
 from . import core
 from .core import *
 from . import metrics
@@ -151,8 +152,8 @@ __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
 __email__ = "galib@Zamora-Lopez.xyz"
 __copyright__ = "Copyright 2019"
 __license__ = "Apache License version 2.0"
-__version__ = "1.0.0b2"
-__update__="11/07/2019"
+__version__ = "2.0.0"
+__update__="05/11/2019"
 
 
 #

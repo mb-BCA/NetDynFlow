@@ -19,27 +19,31 @@ communicability and flow return a series of matrices arranged into a tensor
 (a numpy array of rank-3), each describing the state of the network at
 consecutive time points.
 
+Helper functions
+----------------
+JacobianMOU
+    Calculates the Jacobian matrix for the MOU dynamic system.
+
 Generation of main tensors
 --------------------------
+CalcTensor
+    Generic function to create time evolution of communicability or flow.
 DynCom
     Returns the temporal evolution of a network's dynamic communicability.
 DynFlow
     Returns the extrinsinc flow on a network over time for a given input.
-FullFlow
-    Returns the complete flow on a network over time for a given input.
 IntrinsicFlow
     Returns the intrinsic flow on a network over time for a given input.
+FullFlow
+    Returns the complete flow on a network over time for a given input.
 
 Reference and Citation
 ----------------------
 1. M. Gilson, N. Kouvaris, G. Deco & G.Zamora-Lopez "Framework based on communi-
 cability and flow to analyze complex networks" Phys. Rev. E 97, 052301 (2018).
-2. M. Gilson, N. Kouvaris, et al. "Analysis of brain network dynamics estimated
-from fMRI data: A new framework based on communicability and flow"
-bioRxiv (2018). DOI: https://doi.org/10.1101/421883.
-
-
-...moduleauthor:: Gorka Zamora-Lopez <galib@zamora-lopez.xyz>
+2. M. Gilson, N. Kouvaris, et al. "Network analysis of whole-brain fMRI
+dynamics: A new framework based on dynamic communicability" NeuroImage 201,
+116007 (2019).
 
 """
 from __future__ import division, print_function
@@ -48,366 +52,289 @@ import numpy as np
 import numpy.linalg
 import scipy.linalg
 
+__all__ = ['JacobianMOU', 'DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
-## THE MAIN TENSORS ##########################################################
-def DynCom(conmatrix, tauconst, tmax=20, timestep=0.1, scalenorm=True,
-                                                            eigvalnorm=False):
-    """Returns the temporal evolution of a network's dynamic communicability.
+
+## USEFUL FUNCTIONS ##########################################################
+def JacobianMOU(con, tau):
+    """Calculates the Jacobian matrix for the MOU dynamic system.
 
     Parameters
     ----------
-    conmatrix : ndarray of rank-2
+    con : ndarray of rank-2
         The adjacency matrix of the network.
-    tauconst : real valued number, or ndarray
+    tau : real valued number, or ndarray of rank-1
         The decay rate at the nodes. Positive value expected.
         If a number is given, then the function considers all nodes have same
         decay rate. Alternatively, an array can be inputed with the decay rate
         of each node.
+
+    Returns
+    -------
+    jac : ndarray of rank-2
+        The Jacobian matrix of shape N x N for the MOU dynamical system.
+    """
+    # 0) SECURITY CHECKS
+    # Check the input connectivity matrix
+    con_shape = np.shape(con)
+    if len(con_shape) != 2:
+        raise ValueError( "'con' not a matrix." )
+    if con_shape[0] != con_shape[1]:
+        raise ValueError( "'con' not a square matrix." )
+    # Make sure con is a ndarray of dtype = np.float64
+    con = np.array(con, dtype=np.float)
+    n_nodes = con_shape[0]
+
+    # Check the tau constant, in case it is a 1-dimensional array-like.
+    tau_shape = np.shape(tau)
+    if tau_shape:
+        if len(tau_shape) != 1:
+            raise ValueError( "tau must be either a float or a 1D array." )
+        if tau_shape[0] != n_nodes:
+            raise ValueError( "'con' and tau not aligned." )
+        # Make sure tau is a ndarray of dytpe = np.float64
+        tau = np.array(tau, dtype=np.float)
+    else:
+        tau = tau * np.ones(n_nodes, dtype=np.float)
+
+    # 1) CALCULATE THE JACOBIAN MATRIX
+    jacdiag = -np.ones(n_nodes, dtype=np.float) / tau
+    jac = np.diag(jacdiag) + con
+
+    return jac
+
+
+## GENERATION OF THE MAIN TENSORS #############################################
+def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
+                                                normed=True, case='DynCom'):
+    """Generic function to create time evolution of communicability or flow.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    tau : real valued number, or ndarray of rank-1
+        The decay rate at the nodes. Positive value expected.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
+    sigma : ndarray of rank-2
+        The covariance matrix of fluctuating inputs.
     tmax : real valued number, positive (optional)
         Final time for integration.
     timestep : real valued number, positive (optional)
         Sampling time-step.
         Warning: Not an integration step, just the desired sampling rate.
-    scalenorm : boolean (optional)
+    normed : boolean (optional)
         If True, normalises the tensor by the scaling factor, to make networks
         of different size comparable.
-    evnormalise : boolean (optional)
-        'True' if adjacency matrix shall be normalised by the spectral diameter,
-        'False' otherwise. This normalisation modifies the range of 'tauconst'
-        for which the system converges.
 
     Returns
     -------
-    dyncomtensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+    flow_tensor : ndarray of rank-3
+        Temporal evolution of the network's dynamic flow or communicability.
+        A tensor of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is
+        the number of nodes.
     """
     # 0) SECURITY CHECKS
+    caselist = ['DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
+    if case not in caselist:
+        raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
+
     if tmax <= 0.0: raise ValueError("'tmax' must be positive")
     if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
     if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-    conmatrix = conmatrix.astype(float)
 
-    # 1) NORMALIZE IF REQUESTED
-    N = len(conmatrix)
-    if eigvalnorm:
-        # Find the spectral diameter
-        eigenvalues = numpy.linalg.eigvals(conmatrix)
-        evnorms = np.zeros(N, np.float)
-        for i in range(N):
-            evnorms[i] = numpy.linalg.norm(eigenvalues[i])
-        evmax = evnorms.max()
+    # 1) CALCULATE THE JACOBIAN MATRIX
+    jac = JacobianMOU(con, tau)
+    jacdiag = np.diagonal(jac)
+    n_nodes = len(jac)
 
-        # Normalise the adjacency matrix
-        conmatrix = 1./evmax * conmatrix
+    # 2) CALCULATE THE DYNAMIC FLOW
+    # 2.1) Calculate the extrinsic flow over integration time
+    n_t = int(tmax / timestep) + 1
+    sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
-    # 2.1) Define the Jacobian matrix
-    if np.shape(tauconst):
-        # In case tauconst was an array-like data
-        assert len(tauconst) == N, "Data not aligned. 'conmatrix and tauconst not of same length"
-        if type(tauconst) == numpy.ndarray:
-            jac0diag = -1. / tauconst
-        else:
-            jac0diag = -1. / np.array(tauconst, dtype=float)
-        scalingfactor = abs(tauconst).sum()
-    else:
-        # In case tauconst was just a number
-        jac0diag = -1.0 * np.ones(N, dtype=float) / tauconst
-        scalingfactor = abs(tauconst) * N
+    flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
+    if case == 'DynCom':
+        for i_t in range(n_t):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the dynamic communicability at time t
+            flow_tensor[i_t] = jac_t - jacdiag_t
 
-    diagidx = np.diag_indices(N)
-    jacobian = conmatrix.copy()
-    jacobian[diagidx] = jac0diag
+    elif case == 'DynFlow':
+        for i_t in range(n_t):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the dynamic communicability at time t
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
-    # 2.2) Dynamic communicability over time
-    nsteps = int(tmax / timestep) + 1
-    dyncomtensor = np.zeros((nsteps,N,N), np.float)
-    for tidx in range(nsteps):
-        t = tidx * timestep
-        # Calculate the term for J0, without using expm(), which is very slow
-        jac0diag_t = np.exp(jac0diag * t)
-        jac0t = np.eye(N, dtype=float)
-        jac0t[diagidx] = jac0diag_t
-        # Calculate the dynamic communicability at time t.
-        dyncomtensor[tidx] = (scipy.linalg.expm(jacobian*t) - jac0t)
+    elif case == 'IntrinsicFlow':
+        for i_t in range(n_t):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the dynamic communicability at time t.
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jacdiag_t)
 
-    # 2.3) Normalise by the scaling factor
-    if scalenorm:
-        dyncomtensor /= scalingfactor
+    elif case == 'FullFlow':
+        for i_t in range(n_t):
+            t = i_t * timestep
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the non-normalised flow at time t.
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t )
 
-    return dyncomtensor
+    # 2.2) Normalise by the scaling factor
+    if normed:
+        scaling_factor = (-1./jacdiag).sum()
+        flow_tensor /= scaling_factor
 
-def DynFlow(conmatrix, tauconst, sigmamat, tmax=20, timestep=0.1, scalenorm=True, eigvalnorm=False):
+    return flow_tensor
+
+
+## Wrappers using CalcTensor() ___________________________________________
+def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     """Returns the extrinsinc flow on a network over time for a given input.
 
     Parameters
     ----------
-    conmatrix : ndarray of rank-2
+    con : ndarray of rank-2
         The adjacency matrix of the network.
-    tauconst : real valued number, or ndarray
+    tau : real valued number, or ndarray of rank-1
         The decay rate at the nodes. Positive value expected.
         If a number is given, then the function considers all nodes have same
         decay rate. Alternatively, an array can be inputed with the decay rate
         of each node.
-    sigmamat : ndarray of rank-2
-        The matrix of Gaussian noise covariances.
+    sigma : ndarray of rank-2
+        The covariance matrix of fluctuating inputs.
     tmax : real valued number, positive (optional)
         Final time for integration.
     timestep : real valued number, positive (optional)
         Sampling time-step.
         Warning: Not an integration step, just the desired sampling rate.
-    scalenorm : boolean (optional)
+    normed : boolean (optional)
         If True, normalises the tensor by the scaling factor, to make networks
         of different size comparable.
-    evnormalise : boolean (optional)
-        'True' if adjacency matrix shall be normalised by the spectral diameter,
-        'False' otherwise. This normalisation modifies the range of 'tauconst'
-        for which the system converges.
 
     Returns
     -------
-    dyncomtensor : ndarray of rank-3
+    dynflow_tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+        of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-    assert np.shape(conmatrix) == np.shape(sigmamat), "Connectivity and covariance matrices not aligned."
-    conmatrix = conmatrix.astype(float)
+    dynflow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
+                    timestep=timestep, normed=normed, case='DynFlow')
 
-    # 1) NORMALIZE IF REQUESTED
-    N = len(conmatrix)
-    if eigvalnorm:
-        # Find the spectral diameter
-        eigenvalues = numpy.linalg.eigvals(conmatrix)
-        evnorms = np.zeros(N, np.float)
-        for i in range(N):
-            evnorms[i] = numpy.linalg.norm(eigenvalues[i])
-        evmax = evnorms.max()
+    return dynflow_tensor
 
-        # Normalise the adjacency matrix
-        conmatrix = 1./evmax * conmatrix
-
-    # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
-    # 2.1) Define the Jacobian matrix
-    if np.shape(tauconst):
-        # In case tauconst was an array-like data
-        assert len(tauconst) == N, "Data not aligned. 'conmatrix and tauconst not of same length"
-        if type(tauconst) == numpy.ndarray:
-            jac0diag = -1. / tauconst
-        else:
-            jac0diag = -1. / np.array(tauconst, dtype=float)
-        scalingfactor = abs(tauconst).sum()
-    else:
-        # In case tauconst was just a number
-        jac0diag = -1.0 * np.ones(N, dtype=float) / tauconst
-        scalingfactor = abs(tauconst) * N
-
-    diagidx = np.diag_indices(N)
-    jacobian = conmatrix.copy()
-    jacobian[diagidx] = jac0diag
-
-    # 2.2) Calculate the extrinsic flow over time
-    nsteps = int(tmax / timestep) + 1
-    sigmamat = np.sqrt(sigmamat)
-    flowtensor = np.zeros((nsteps,N,N), np.float)
-    for tidx in range(nsteps):
-        t = tidx * timestep
-        # Calculate the term for J0, without using expm(), which is very slow
-        jac0diag_t = np.exp(jac0diag * t)
-        jac0t = np.eye(N, dtype=float)
-        jac0t[diagidx] = jac0diag_t
-        # Calculate the dynamic communicability at time t.
-        dynamiccomt = (scipy.linalg.expm(jacobian*t) - jac0t)
-        flowtensor[tidx] = np.dot( sigmamat, dynamiccomt )
-
-    # 2.3) Normalise by the scaling factor
-    if scalenorm:
-        flowtensor /= scalingfactor
-
-    return flowtensor
-
-def FullFlow(conmatrix, tauconst, sigmamat, tmax=20, timestep=0.1,
-                                            scalenorm=True, eigvalnorm=False):
-    """Returns the complete flow on a network over time for a given input.
+def DynCom(con, tau, tmax=20, timestep=0.1, normed=True):
+    """Returns the temporal evolution of a network's dynamic communicability.
 
     Parameters
     ----------
-    conmatrix : ndarray of rank-2
+    con : ndarray of rank-2
         The adjacency matrix of the network.
-    tauconst : real valued number, or ndarray
+    tau : real valued number, or ndarray of rank-1
         The decay rate at the nodes. Positive value expected.
         If a number is given, then the function considers all nodes have same
         decay rate. Alternatively, an array can be inputed with the decay rate
         of each node.
-    sigmamat : ndarray of rank-2
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+    timestep : real valued number, positive (optional)
+        Sampling time-step.
+        Warning: Not an integration step, just the desired sampling rate.
+    normed : boolean (optional)
+        If True, normalises the tensor by the scaling factor, to make networks
+        of different size comparable.
+
+    Returns
+    -------
+    dyncom_tensor : ndarray of rank-3
+        Temporal evolution of the network's dynamic communicability. A tensor
+        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+    """
+    n_nodes = len(con)
+    sigma = np.identity(n_nodes, dtype=np.float)
+    dyncom_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
+                    timestep=timestep, normed=normed, case='DynCom')
+
+    return dyncom_tensor
+
+def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
+    """Returns the intrinsic flow on a network over time for a given input.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    tau : real valued number, or ndarray of rank-1
+        The decay rate at the nodes. Positive value expected.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
+    sigma : ndarray of rank-2
+        The matrix of Gaussian noise covariances.
+    tmax : real valued number, positive (optional)
+        Final time for integration.dyncom
+    timestep : real valued number, positive (optional)
+        Sampling time-step.
+        Warning: Not an integration step, just the desired sampling rate.
+    normed : boolean (optional)
+        If True, normalises the tensor by the scaling factor, to make networks
+        of different size comparable.
+
+    Returns
+    -------
+    flow_tensor : ndarray of rank-3
+        Temporal evolution of the network's dynamic communicability. A tensor
+        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+    """
+    flow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
+                    timestep=timestep, normed=normed, case='IntrinsicFlow')
+
+    return flow_tensor
+
+def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
+    """Returns the complete flow on a network over time for a given input.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    tau : real valued number, or ndarray of rank-1
+        The decay rate at the nodes. Positive value expected.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
+    sigma : ndarray of rank-2
         The matrix of Gaussian noise covariances.
     tmax : real valued number, positive (optional)
         Final time for integration.
     timestep : real valued number, positive (optional)
         Sampling time-step. NOT an integration step, but the sampling step.
-    scalenorm : boolean (optional)
+    normed : boolean (optional)
         If True, normalises the tensor by the scaling factor, to make networks
         of different size comparable.
-    evnormalise : boolean (optional)
-        'True' if adjacency matrix shall be normalised by the spectral diameter,
-        'False' otherwise. This normalisation modifies the range of 'tauconst'
-        for which the system converges.
 
     Returns
     -------
-    flowtensor : ndarray of rank-3
+    flow_tensor : ndarray of rank-3
         Temporal evolution of the network's flow. A tensor of shape
         (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-    assert np.shape(conmatrix) == np.shape(sigmamat), "Connectivity and covariance matrices not aligned."
-    conmatrix = conmatrix.astype(float)
+    flow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
+                            timestep=timestep, normed=normed, case='FullFlow')
 
-    # 1) NORMALIZE IF REQUESTED
-    N = len(conmatrix)
-    if eigvalnorm:
-        # Find the spectral diameter
-        eigenvalues = numpy.linalg.eigvals(conmatrix)
-        evnorms = np.zeros(N, np.float)
-        for i in range(N):
-            evnorms[i] = numpy.linalg.norm(eigenvalues[i])
-        evmax = evnorms.max()
-
-        # Normalise the adjacency matrix
-        conmatrix = 1./evmax * conmatrix
-
-    # 2) CALCULATE THE TEMPORAL EVOLUTION OF THE FLOW
-    # 2.1) Define the Jacobian matrix
-    if np.shape(tauconst):
-        # In case tauconst was an array-like data
-        assert len(tauconst) == N, "Data not aligned. 'conmatrix and tauconst not of same length"
-        if type(tauconst) == numpy.ndarray:
-            jac0diag = -1. / tauconst
-        else:
-            jac0diag = -1. / np.array(tauconst, dtype=float)
-        scalingfactor = abs(tauconst).sum()
-    else:
-        # In case tauconst was just a number
-        jac0diag = -1.0 * np.ones(N, dtype=float) / tauconst
-        scalingfactor = abs(tauconst) * N
-
-    diagidx = np.diag_indices(N)
-    jacobian = conmatrix.copy()
-    jacobian[diagidx] = jac0diag
-
-    # 2.2) Calculate the flow over time
-    nsteps = int(tmax / timestep) + 1
-    sigmamat = np.sqrt(sigmamat)
-    flowtensor = np.zeros((nsteps,N,N), np.float)
-    for tidx in range(nsteps):
-        t = tidx * timestep
-        # Calculate the non-normalised flow at time t.
-        flowtensor[tidx] = np.dot( sigmamat, scipy.linalg.expm(jacobian*t) )
-
-    # 2.3) Normalise by the scaling factor
-    if scalenorm:
-        flowtensor /= scalingfactor
-
-    return flowtensor
-
-def IntrinsicFlow(conmatrix, tauconst, sigmamat, tmax=20, timestep=0.1, scalenorm=True, eigvalnorm=False):
-    """Returns the intrinsic flow on a network over time for a given input.
-
-    Parameters
-    ----------
-    conmatrix : ndarray of rank-2
-        The adjacency matrix of the network.
-    tauconst : real valued number, or ndarray
-        The decay rate at the nodes. Positive value expected.
-        If a number is given, then the function considers all nodes have same
-        decay rate. Alternatively, an array can be inputed with the decay rate
-        of each node.
-    sigmamat : ndarray of rank-2
-        The matrix of Gaussian noise covariances.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
-    timestep : real valued number, positive (optional)
-        Sampling time-step.
-        Warning: Not an integration step, just the desired sampling rate.
-    scalenorm : boolean (optional)
-        If True, normalises the tensor by the scaling factor, to make networks
-        of different size comparable.
-    evnormalise : boolean (optional)
-        'True' if adjacency matrix shall be normalised by the spectral diameter,
-        'False' otherwise. This normalisation modifies the range of 'tauconst'
-        for which the system converges.
-
-    Returns
-    -------
-    dyncomtensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
-    """
-    # 0) SECURITY CHECKS
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-    assert np.shape(conmatrix) == np.shape(sigmamat), "Connectivity and covariance matrices not aligned."
-    conmatrix = conmatrix.astype(float)
-
-    # 1) NORMALIZE IF REQUESTED
-    N = len(conmatrix)
-    if eigvalnorm:
-        # Find the spectral diameter
-        eigenvalues = numpy.linalg.eigvals(conmatrix)
-        evnorms = np.zeros(N, np.float)
-        for i in range(N):
-            evnorms[i] = numpy.linalg.norm(eigenvalues[i])
-        evmax = evnorms.max()
-
-        # Normalise the adjacency matrix
-        conmatrix = 1./evmax * conmatrix
-
-    # 2) CALCULATE THE DYNAMIC COMMUNICABILITY
-    # 2.1) Define the Jacobian matrix
-    if np.shape(tauconst):
-        # In case tauconst was an array-like data
-        assert len(tauconst) == N, "Data not aligned. 'conmatrix and tauconst not of same length"
-        if type(tauconst) == numpy.ndarray:
-            jac0diag = -1. / tauconst
-        else:
-            jac0diag = -1. / np.array(tauconst, dtype=float)
-        scalingfactor = abs(tauconst).sum()
-    else:
-        # In case tauconst was just a number
-        jac0diag = -1.0 * np.ones(N, dtype=float) / tauconst
-        scalingfactor = abs(tauconst) * N
-
-    diagidx = np.diag_indices(N)
-    jacobian = conmatrix.copy()
-    jacobian[diagidx] = jac0diag
-
-    # 2.2) Calculate the extrinsic flow over time
-    nsteps = int(tmax / timestep) + 1
-    sigmamat = np.sqrt(sigmamat)
-    flowtensor = np.zeros((nsteps,N,N), np.float)
-    for tidx in range(nsteps):
-        t = tidx * timestep
-        # Calculate the term for J0, without using expm(), which is very slow
-        jac0diag_t = np.exp(jac0diag * t)
-        jac0t = np.eye(N, dtype=float)
-        jac0t[diagidx] = jac0diag_t
-        # Calculate the dynamic communicability at time t.
-        flowtensor[tidx] = np.dot( sigmamat, jac0t )
-
-    # 2.3) Normalise by the scaling factor
-    if scalenorm:
-        flowtensor /= scalingfactor
-
-    return flowtensor
-
+    return flow_tensor
 
 
 ##
