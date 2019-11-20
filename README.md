@@ -107,6 +107,14 @@ limitations under the License.
 -------------------------------------------------------------------------------
 ### VERSION HISTORY
 
+##### November 20, 2019
+Official **version 1.0.0** has been uploaded. 
+The package went through an in-depth internal revision but implies minor changes from the user point of view.
+
+1. Function `CalcTensor()` was created, which makes most of the dirty job while the rest of core functions, e.g., `DynCom()` or `DynFlow()` became wrappers calling `CalcTensor()`. This internal redesign was made to avoid reproducing code in several parts and thus simplify maintenance.
+2. Some internal variables were remaned for uniformity with the [pyMOU](https://github.com/mb-BCA/pyMOU) package.
+3. An examples folder was added to host tutorials (Jupyter Notebooks). These examples will be further updated but version of the package will remain v1.0.0 until changes are done at the core files.
+
 ##### July 10, 2019
 First release of *NetDynFlow* (Beta).
 
