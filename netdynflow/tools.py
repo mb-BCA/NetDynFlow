@@ -100,13 +100,15 @@ def RewireLinkWeights(con):
 
     # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
     numpy.random.shuffle(weights)
-    rewmatrix = zeros((N,N), dtype=con.dtype)
+    rewmatrix = np.zeros((N,N), dtype=con.dtype)
     rewmatrix[nzidx] = weights
 
     return rewmatrix
 
-# @jit
+@jit
 def RandomiseWeightedNetwork1(con):
+    # GORKA: This version seems to be faster, with and without Numba.
+    # At least, it is never slower
     """
     Randomises a (weighted) connectivity matrix.
 
@@ -157,7 +159,7 @@ def RandomiseWeightedNetwork1(con):
         nzidx = con.nonzero()
         weights = con[nzidx]
     else:
-        nzidx = triu(con, k=1).nonzero()
+        nzidx = np.triu(con, k=1).nonzero()
         weights = con[nzidx]
 
     # Get whether 'con' allows self-loops (non-zero diagonal elements)
@@ -192,7 +194,7 @@ def RandomiseWeightedNetwork1(con):
 
     return rewcon
 
-# @jit
+@jit
 def RandomiseWeightedNetwork2(con):
     """
     Randomises a (weighted) connectivity matrix.
