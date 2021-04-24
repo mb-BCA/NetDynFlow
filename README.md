@@ -107,6 +107,11 @@ limitations under the License.
 -------------------------------------------------------------------------------
 ### VERSION HISTORY
 
+##### April 23, 2021
+Order of axes for the internal tensors has been altered. Originally, the core function `CalcTensor()` would return the temporal evolution of the flows in an array of shape (nt,N,N) where nt = number of time points and N = number of nodes. This was a mistake and for coherence with the C-style array format that is dominant in NumPy, now the output tensors are of shape (N,N,nt).
+
+Functions in module *metrics.py* have been fixed accordingly. Therefore, function `NodeEvolution()` now returns two arrays (input and output communicabilities) of shape (N,nt), whereas these were previously of shape (nt,N).
+
 ##### November 20, 2019
 Official **version 1.0.0** has been uploaded. 
 The package went through an in-depth internal revision but implies minor changes from the user point of view.
