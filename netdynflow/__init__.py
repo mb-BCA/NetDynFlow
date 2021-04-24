@@ -109,7 +109,7 @@ dynamic communicability over time: ::
 >>> dyncom = ndf.DynCom(net, tau, tmax=15, timestep=0.01)
 
 The resulting variable ``dyncom`` is an array of rank-3 with dimensions
-((tmax / tstep) x N x N) containing tmax / tstep = 1500 matrices of size 4 x 4,
+(N x N x (tmax / tstep)) containing tmax / tstep = 1500 matrices of size 4 x 4,
 each describing the state of the network at a given time step.
 
     **NOTE**:
@@ -128,7 +128,7 @@ network over time as:  ::
 
 License
 -------
-Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+Copyright (c) 2021, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 
 Released under the Apache License, Version 2.0 (the "License");
 you may not use this software except in compliance with the License.
