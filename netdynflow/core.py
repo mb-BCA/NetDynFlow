@@ -133,7 +133,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     -------
     flow_tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic flow or communicability.
-        A tensor of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is
+        A tensor of shape n_nodes x n_nodes x (tmax*timestep), where n_nodes is
         the number of nodes.
     """
     # 0) SECURITY CHECKS
@@ -155,7 +155,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     n_t = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    flow_tensor = np.zeros((n_t,n_nodes,n_nodes), dtype=np.float)
+    flow_tensor = np.zeros((n_nodes,n_nodes,n_t), dtype=np.float)
     if case == 'DynCom':
         for i_t in range(n_t):
             t = i_t * timestep
@@ -164,7 +164,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = jac_t - jacdiag_t
+            flow_tensor[:,:,i_t] = jac_t - jacdiag_t
 
     elif case == 'DynFlow':
         for i_t in range(n_t):
@@ -174,7 +174,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
     elif case == 'IntrinsicFlow':
         for i_t in range(n_t):
@@ -182,7 +182,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the dynamic communicability at time t.
-            flow_tensor[i_t] = np.dot( sigma_sqrt, jacdiag_t)
+            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'FullFlow':
         for i_t in range(n_t):
@@ -190,7 +190,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the non-normalised flow at time t.
-            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t )
+            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jac_t )
 
     # 2.2) Normalise by the scaling factor
     if normed:
