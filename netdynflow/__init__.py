@@ -147,6 +147,7 @@ from .core import *
 from . import metrics
 from .metrics import *
 from . import tools
+from . import metrics_test
 
 
 __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
