@@ -58,71 +58,14 @@ def TTPdistance(tensor, timestep):
     ttp_matrix = tensor.argmax(axis=2)
 
     # Convert into time
-    tpoints = timestep * arange(nt, dtype=float)
+    tpoints = timestep * np.arange(nt, dtype=np.float)
     ttp_matrix = tpoints[ttp_matrix]
 
     # Calculate the average time-to-peak
-    average_ttp = (ttp_matrix.sum() - ttp_matrix.trace()) / (N*(N-1))
+    average_ttp = (ttp_matrix.sum() - ttp_matrix.trace()) / (n1*(n1-1))
 
     return (ttp_matrix, average_ttp)
 
-def NodeEvolution(tensor, directed=False):
-    """Temporal evolution of all nodes' input and output communicability or flow.
-
-    Parameters
-    ----------
-    tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape n_nodes x n_nodes x timesteps, where n_nodes is the number of nodes.
-
-    Returns
-    -------
-    nodedyncom : tuple.
-        Temporal evolution of the communicability or flow for all nodes.
-        The result consists of a tuple of two ndarrays of shape (n_nodes x timesteps)
-        each. The first is for the sum of communicability interactions over all
-        inputs of each node and the second for its outputs.
-    """
-    # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, n_t = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x timesteps) expected'
-
-    # 1) Calculate the input and output node properties
-    innodedyn = tensor.sum(axis=0)
-    outnodedyn = tensor.sum(axis=1)
-    nodedyn = ( innodedyn, outnodedyn )
-
-    return nodedyn
-
-def Diversity(tensor):
-    """Temporal diversity for a networks dynamic communicability or flow.
-
-    Parameters
-    ----------
-    tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability or flow. A
-        tensor of shape N x N x timesteps, where N is the number of nodes.
-
-    Returns
-    -------
-    diversity : ndarray of rank-1
-        Array containing temporal evolution of the diversity.
-    """
-    # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, n_t = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x n_t) expected'
-
-    diversity = np.zeros(n_t, np.float)
-    diversity[0] = np.nan
-    for i_t in range(1,n_t):
-        temp = tensor[:,:,i_t]
-        diversity[i_t] = temp.std() / temp.mean()
-
-    return diversity
 
 
 
