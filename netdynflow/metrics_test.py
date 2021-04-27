@@ -28,6 +28,10 @@ def TTPdistance(tensor, timestep):
     Write more here ...  TTP is the time the response on node j take to reach
     peak, after a perturbation at node i.
 
+    NOTE: See if you can use the same function for both the node evolution and
+    the link evolution, which are of different shape. I think you can achieve
+    that by simply setting 'axis=-1' to the argmax() function.
+
     Parameters
     ----------
     tensor : ndarray of rank-3
