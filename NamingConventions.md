@@ -1,3 +1,14 @@
+## Naming conventions for the metrics and their corresponding functions
+
+Naming of objects and metrics needs to be corrected in the DynCom / DynFlow formalism. We should give a detailed though of what each object and metric truly measure from the point of view of the dynamic propagation system that represents. But, we should neither forget the practicality, that many graph/network concepts are well stablished and are familiar to the community. So, as an extension of graph/network analysis tools, we should take this on account and provide names that are familiar to the end users.
+
+On the other hand, there are some potential sources for confusion in this formalism when it comes to naming things. One such reason is the fact that we have both flow, intrinsic flow, extrinsic flow and dynamic communicability. With the two latter being the same, indeed. Another source is the fact that some of the metrics are characterised at three different levels: network, node and link. So, this needs to 
+
+
+
+
+
+
 ## Internal variable naming conventions
 
 
