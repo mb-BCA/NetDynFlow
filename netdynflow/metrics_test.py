@@ -59,7 +59,7 @@ def TTPdistance(tensor, timestep):
     assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x n_t) expected'
 
     # Get the indices at which every link peaks
-    ttp_matrix = tensor.argmax(axis=2)
+    ttp_matrix = tensor.argmax(axis=-1)
 
     # Convert into time
     tpoints = timestep * np.arange(nt, dtype=np.float)
