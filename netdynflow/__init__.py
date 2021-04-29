@@ -154,8 +154,8 @@ __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
 __email__ = "galib@Zamora-Lopez.xyz"
 __copyright__ = "Copyright 2021"
 __license__ = "Apache License version 2.0"
-__version__ = "1.0.1"
-__update__ = "24/04/2021"
+__version__ = "2.X.Y"
+__update__ = "29/04/2021"
 
 
 #
