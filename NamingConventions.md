@@ -2,8 +2,18 @@
 
 Naming of objects and metrics needs to be corrected in the DynCom / DynFlow formalism. We should give a detailed though of what each object and metric truly measure from the point of view of the dynamic propagation system that represents. But, we should neither forget the practicality, that many graph/network concepts are well stablished and are familiar to the community. So, as an extension of graph/network analysis tools, we should take this on account and provide names that are familiar to the end users.
 
-On the other hand, there are some potential sources for confusion in this formalism when it comes to naming things. One such reason is the fact that we have both flow, intrinsic flow, extrinsic flow and dynamic communicability. With the two latter being the same, indeed. Another source is the fact that some of the metrics are characterised at three different levels: network, node and link. So, this needs to 
+On the other hand, there are some potential sources for confusion in this formalism when it comes to naming things. One such reason is the fact that we have both flow, intrinsic flow, extrinsic flow and dynamic communicability. With the two latter being the same, indeed. Another source is the fact that some of the metrics are characterised at three different levels: network, node and link. So, this needs to be explicit in the naming. For example, we could say (network communicability, node communicability and link communicability).
 
+GORKA: To be honest, I don't even like the word communicability. What the flows quantify is the level of response of a node j to a perturbation on node i, or seen the other way around, the influence of node i over j. So, would it make more sense to call it the activity of j? The causal activity of j?
+
+
+
+- communicability --> activity, influence, response.
+- total communicability --> network communicability.
+- in-/out-communicability --> node communicability.
+- in-communicability --> node sensitivity/reactivity?
+- out-communicability --> node influence? Centrality?
+- If network/node/link communicability are the temporal evolution of the network/node/link, then how to call the sum over time (integral) of those quantities?
 
 
 
