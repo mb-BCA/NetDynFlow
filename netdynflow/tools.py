@@ -22,6 +22,14 @@ RandomiseWeightedNetwork:
 !!!!!!!!!!!!
 GORKA: Shall we may name this module as 'benchmarks' or 'nullmodels'?
 !!!!!!!!!!!!
+GORKA: I am thinking to import pyGAlib for some utilities and network generation
+functions. On the one hand, I don't want to enforce NetDynFlow users to use
+pyGAlib, just because it is my library. But on the other hand, I don't think
+that copy/pasting functions from pyGAlib into this module is robust. Replicating
+functions may lead to bugs. Better to have only one function to do a job and,
+if that one is broken, it only needs to be fixed once.
+What shall we do?
+!!!!!!!!!!!!
 """
 
 import numpy as np
