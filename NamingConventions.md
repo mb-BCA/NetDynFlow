@@ -9,7 +9,7 @@ GORKA: To be honest, I don't even like the word communicability. What the flows 
 
 
 - communicability --> activity, influence, response.
-- total communicability --> network communicability.
+- total communicability --> network communicability. ("total" is not a good term because it could mean the whole-network, or the total communicability over time.)
 - in-/out-communicability --> node communicability.
 - in-communicability --> node sensitivity/reactivity?
 - out-communicability --> node influence? Centrality?
