@@ -7,7 +7,7 @@ On the other hand, there are some potential sources for confusion in this formal
 GORKA: To be honest, I don't even like the word communicability. What the flows quantify is the level of response of a node j to a perturbation on node i, or seen the other way around, the influence of node i over j. So, would it make more sense to call it the activity of j? The causal activity of j?
 
 
-
+- model-based network analysis --> flow-based, diffusion-based, response-based, ...
 - communicability --> activity, influence, response.
 - total communicability --> network communicability. ("total" is not a good term because it could mean the whole-network, or the total communicability over time.)
 - in-/out-communicability --> node communicability.
