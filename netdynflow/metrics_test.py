@@ -22,7 +22,7 @@ import scipy.linalg
 
 
 ## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
-def TTPdistance(tensor, timestep):
+def TimeToPeak(tensor, timestep):
     """Returns the time at which links reach peak communicability.
 
     Write more here ...  TTP is the time the response on node j take to reach
