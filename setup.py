@@ -10,7 +10,7 @@ setup(
     name =  'netdynflow',
     description = 'A package to study complex networks based on their temporal Dynamic Communicability and Flow.',
     url =  'https://github.com/gorkazl/NetDynFlow',
-    version =  '2.X.Y',
+    version =  '2.0.0.dev1',
     license =  'Apache License 2.0',
 
     author =  'Gorka Zamora-Lopez, Matthieu Gilson, Nikos Kouvaris',
