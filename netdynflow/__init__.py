@@ -139,7 +139,6 @@ You may obtain a copy of the License at
 or see the LICENSE.txt file.
 
 """
-from __future__ import absolute_import
 
 # Branch to test different options to organise the core.py module
 from . import core
