@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+# Copyright (c) 2021, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 # <galib@Zamora-Lopez.xyz>
 #
 # Released under the Apache License, Version 2.0 (the "License");
@@ -74,6 +74,7 @@ def Reciprocity(adjmatrix):
 def RewireLinkWeights(con):
     """
     Randomly re-allocates the link weights of an input network.
+
     The function does not alter the position of the links, it only shuffles
     the weights. Thus, if 'con' is an unweighted adjacency matrix, the
     function will simply return a copy of 'con'.
