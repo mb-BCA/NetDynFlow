@@ -71,38 +71,6 @@ def Reciprocity(adjmatrix):
 
 
 ## RANDOMIZATION OF (WEIGHTED) NETWORKS ########################################
-def RewireLinkWeights(con):
-    """
-    Randomly re-allocates the link weights of an input network.
-
-    The function does not alter the position of the links, it only shuffles
-    the weights. Thus, if 'con' is an unweighted adjacency matrix, the
-    function will simply return a copy of 'con'.
-    Parameters
-    ----------
-    con : ndarray
-        Adjacency matrix of the (weighted) network.
-    Returns
-    -------
-    rewmatrix : ndarray
-        A connectivity matrix with links between same nodes as 'con' but the
-        link weights shuffled.
-    """
-    # 0) SECURITY CHECKS
-    if not type(con) == numpy.ndarray:
-        raise TypeError('Please enter the connectivity matrix as a numpy array.')
-
-    # 1) EXTRACT THE NEEDED INFORMATION FROM THE con MATRIX
-    N = len(con)
-    nzidx = con.nonzero()
-    weights = con[nzidx]
-
-    # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
-    numpy.random.shuffle(weights)
-    rewmatrix = np.zeros((N,N), dtype=con.dtype)
-    rewmatrix[nzidx] = weights
-
-    return rewmatrix
 
 @jit
 def RandomiseWeightedNetwork1(con):
