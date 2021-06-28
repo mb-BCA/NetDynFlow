@@ -23,6 +23,9 @@ NodeEvolution
     Temporal evolution of all nodes' input and output communicability or flow.
 Diversity
     Temporal diversity for a networks dynamic communicability or flow.
+TimeToPeak
+    The time links, nodes or networks need to reach peak flow.
+
 
 Reference and Citation
 ----------------------
@@ -42,7 +45,8 @@ import scipy.linalg
 
 ## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
 def TotalEvolution(tensor):
-    """Calculates total communicability or flow over time for a network.
+    """
+    Calculates total communicability or flow over time for a network.
 
     Parameters
     ----------
@@ -55,6 +59,7 @@ def TotalEvolution(tensor):
     totaldyncom : ndarray of rank-1
         Array containing temporal evolution of the total communicability.
     """
+
     # 0) SECURITY CHECKS
     tensor_shape = np.shape(tensor)
     assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
@@ -66,7 +71,8 @@ def TotalEvolution(tensor):
     return totaldyncom
 
 def NodeEvolution(tensor, directed=False):
-    """Temporal evolution of all nodes' input and output communicability or flow.
+    """
+    Temporal evolution of all nodes' input and output communicability or flow.
 
     Parameters
     ----------
@@ -96,7 +102,8 @@ def NodeEvolution(tensor, directed=False):
     return nodedyn
 
 def Diversity(tensor):
-    """Temporal diversity for a networks dynamic communicability or flow.
+    """
+    Temporal diversity for a networks dynamic communicability or flow.
 
     Parameters
     ----------
@@ -123,6 +130,53 @@ def Diversity(tensor):
 
     return diversity
 
+def TimeToPeak(arr, timestep):
+    """
+    The time links, nodes or networks need to reach peak flow.
+
+    In terms of binary graphs, time-to-peak is equivalen to the pathlength
+    between two nodes.
+
+    The function calculates the time-to-peak for either links, nodes or the
+    whole network, depending on the input array given.
+    - If 'arr' is the (N x N x nt) tensor flow, the output 'ttp_arr' will be
+    an N x N matrix with the ttp between every pair of nodes.
+    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    'ttp_arr' will be an array of length N, containing the ttp of the N nodes.
+    - If 'arr' is the array of length nt for the network flow, then 'ttp_arr'
+    will be a scalar, indicating the time at which whole-network flow peaks.
+
+    Parameters
+    ----------
+    arr : ndarray of adaptive shape, according to the case.
+        Temporal evolution of the flow. An array of shape N X N X nt for the
+        flow of the links, an array of shape N X nt for the flow of the nodes,
+        or a 1-dimensional array of length nt for the network flow.
+    timestep : real valued number.
+        Sampling time-step. This has to be the time-step employed to simulate
+        the temporal evolution encoded in 'arr'.
+
+    Returns
+    -------
+    ttp_arr : ndarray of rank-2
+        The time(s) taken for links, nodes or the network to reach peak flow.
+        Output shape depends on input.
+    """
+
+    # 0) SECURITY CHECKS
+    ## TODO: Write a check to verify the curve has a real peak and decays after
+    ## the peak. Raise a warning that maybe longer simulation is needed.
+    arr_shape = np.shape(arr)
+    if arr_shape==3:
+        assert arr_shape[0] == arr_shape[1], \
+            'Input not aligned. Shape (n_nodes x n_nodes x n_time) expected'
+
+    # 1) Get the indices at which every element peaks
+    ttp_arr = arr.argmax(axis=-1)
+    # 2) Convert into simulation time
+    ttp_arr = timestep * ttp_arr
+
+    return ttp_arr
 
 
 ##
