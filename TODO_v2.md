@@ -5,8 +5,8 @@
 
 - Add functions to the *metrics.py* module:
 	- To return the peak flows. I know, it is really trivial to compute but… we need to give these things in functions for beginer users. 
-	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. 
-	- We need a function to extract and study the evolution of the self-interactions. That is, the temporal response of a node to a perturbation on itself at time t = 0.
+	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. If the responses haven't properly decay, the function should return a warning, recommending to run longer simulations.
+	- We need a function to extract and study the evolution of the self-interactions. That is, the temporal response of a node to a perturbation on itself at time t = 0. This is in a way what Ernesto called "returnability" but we have that over time. Remind that in graphs the clustering coefficient is indeed calculated in this manner, for loops of lenght = 3, but longer loops could be included.
 
 - Revisit the function to get the network and node flows over timein *metrics.py*: `TotalEvolution()` and  `NodeEvolution()`. We should have an optional parameter named `selfloops=False/True` to exclude or include the self-interactions from the cross-nodal interactions. At this moment, the calculations include the self-interactions but I am not sure we should do that. The evolution and strength of the self-interactions (response of a node to a perturbation on itself at t = 0) carry their own meaning and should be characterised separately. Re-think how to do this in the algorithm.
 
