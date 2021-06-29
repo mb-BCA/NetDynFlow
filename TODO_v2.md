@@ -8,6 +8,7 @@
 	- Dynamic distance (time-to-relaxation). This one will be the time it takes to reach 95% or 99% of the area under the curve. Try to write a single function that can handle the array for the link, node and network evolutions at once. It requires knowlegde of the temporal span of the simmulation (t0, ffinal) and the time-step dt.
 	- Total flow over time. That is, the integral of the area under the curve. ACHTUNG! we need to take the simulation time-step into account. It is an integral, not just the sum over all the values in the time-series. Include optional time span, such that, for example, we can calculate the integral only until the peak (rise phase), or from the peak until the end (decay phase).
 	- The peak flow. 
+	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. 
 
 - Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
 	- Generate graph of different kinds (deterministic, random graphs, modular, etc.) All these already exist in *pyGAlib*. The question is whether we want to import GAlib and use them from there (this adds one more dependency to the library) or we want to just copy/paste them here.
