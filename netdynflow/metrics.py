@@ -25,6 +25,8 @@ Diversity
     Temporal diversity for a networks dynamic communicability or flow.
 TimeToPeak
     The time links, nodes or networks need to reach peak flow.
+TimeToDecay
+    The time pair-wise interaction, nodes or networks need to decay back to zero.
 
 
 Reference and Citation
@@ -177,6 +179,81 @@ def TimeToPeak(arr, timestep):
     ttp_arr = timestep * ttp_arr
 
     return ttp_arr
+
+def TimeToDecay(arr, dt, fraction=0.99):
+    """
+    The time pair-wise interaction, nodes or networks need to decay back to zero.
+
+    Strictly speaking, this function measures the time that the cumulative
+    flow (area under the curve) needs to reach x% of the total (cumulative)
+    value. Here 'x%' is controled by the optional parameter 'fraction'.
+    For example, 'fraction = 0.99' means the time needed to reach 99%
+    of the area under the curve, given a response curve.
+
+    The function calculates the time-to-decay either for all pair-wise
+    interactions, for the nodes or for the whole network, depending on the
+    input array given.
+    - If 'arr' is the (N x N x nt) tensor flow, the output 'ttd_arr' will be
+    an N x N matrix with the ttd between every pair of nodes.
+    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    'ttd_arr' will be an array of length N, containing the ttd of the N nodes.
+    - If 'arr' is the array of length nt for the network flow, then 'ttd_arr'
+    will be a scalar, indicating the time at which whole-network flow peaks.
+
+    Parameters
+    ----------
+    arr : ndarray of adaptive shape, according to the case.
+        Temporal evolution of the flow. An array of shape N X N X nt for the
+        flow of the links, an array of shape N X nt for the flow of the nodes,
+        or a 1-dimensional array of length nt for the network flow.
+    timestep : real valued number.
+        Sampling time-step. This has to be the time-step employed to simulate
+        the temporal evolution encoded in 'arr'.
+    fraction : scalar, optional
+        The fraction of the total area-under-the-curve to be reached.
+        For example, 'fraction = 0.99' means the time the flow needs to
+        reach 99% of the area under the curve.
+
+    Returns
+    -------
+    ttd_arr : ndarray of rank-2
+        The time(s) needed by the flows of pair-wise interactions, nodes or
+        the network to decay back to zero. Output shape depends on input.
+    """
+
+    # 0) SECURITY CHECKS
+    ## TODO: Write a check to verify the curve(s) has (have) really decayed back
+    ## to zero. At this moment, it is the user's responsability to guarantee
+    ## that all the curves have decayed reasonably well.
+    ## The check should rise a warning to simulate for longer time.
+
+    # Check correct shape, in case input is the 3D array for the pair-wise flow
+    arr_shape = np.array(np.shape(arr), np.int)
+    if len(arr_shape) == 3:
+        assert arr_shape[0] == arr_shape[1], \
+            'Input not aligned. Shape (n_nodes x n_nodes x n_time) expected'
+
+    # 1) Set the level of cummulative flow to be reached over time
+    targetcflow = fraction * arr.sum(axis=-1)
+
+    # 2) Calculate the time the flow(s) need to decay
+    # Initialise the output array, to return the final time-point
+    ## NOTE: This version iterates over all the times. This is not necessary.
+    ## We could start from the end and save plenty of iterations.
+    ttd_shape = arr_shape[:-1]
+    nsteps = arr_shape[-1]
+    ttd_arr = nsteps * np.ones(ttd_shape, np.int)
+
+    # Iterate over time, calculating the cumulative flow(s)
+    cflow = arr[...,0].copy()
+    for t in range(1,nsteps):
+        cflow += arr[...,t]
+        ttd_arr = np.where(cflow < targetcflow, t, ttd_arr)
+
+    # Finally, convert the indices into integration time
+    ttd_arr = ttd_arr.astype(np.float) * dt
+
+    return ttd_arr
 
 
 ##
