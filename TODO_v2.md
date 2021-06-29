@@ -9,6 +9,7 @@
 	- Total flow over time. That is, the integral of the area under the curve. ACHTUNG! we need to take the simulation time-step into account. It is an integral, not just the sum over all the values in the time-series. Include optional time span, such that, for example, we can calculate the integral only until the peak (rise phase), or from the peak until the end (decay phase).
 	- The peak flow. 
 	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. 
+	- Revisit the functions to get the flows of the nodes. We should have an option to exclude the self-interactions from those. The interations of a node with the rest, and with itself (inputs given by itself) should be separated. re-think how to do this, but probably we will need an optional parameter `selfinteractions=False/True`.
 
 - Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
 	- Generate graph of different kinds (deterministic, random graphs, modular, etc.) All these already exist in *pyGAlib*. The question is whether we want to import GAlib and use them from there (this adds one more dependency to the library) or we want to just copy/paste them here.
@@ -16,6 +17,8 @@
 	- A function to generate random weighted networks of different distributions.
 	- Random weighted networks from the weight distribution of a given network (conserve exactly the same weights.
 	- A function to shuffle only the weights of the links in a network, conserving the location of the links (same binary net, randomised weights).
+
+- Add functions `NNt2tNN()` and `tNN2NNt()` for transposing the flow tensors in the *tools.py* module.
 
 - Think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. Stablish a coherent naming system that is general enough, precise and will survive over time to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals. 
 
