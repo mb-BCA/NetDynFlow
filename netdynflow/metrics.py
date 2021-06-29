@@ -255,5 +255,98 @@ def Time2Decay(arr, dt, fraction=0.99):
 
     return ttd_arr
 
+def TotalFlow(arr, timestep, timespan='full'):
+    ## TODO: The name of this function needs good thinking. Different options
+    ## are possible depending on the interpretation and naming of other
+    ## variables or metrics.
+    ## The most explicit would be to call it "AreaUnderCurve()" because that is
+    ## exactly what it does. But that doesn't sound very sexy nor hints on the
+    ## interpretation of what it measures, given that 'arr' will be the
+    ## temporal evolution of a flow, response curve or dyncom ... which are
+    ## indeed the same !! Maybe.
+    """
+    The total accumulated flow of pair-wise, nodes or network flow over time.
+
+    The function calculates the area-under-the-curve for the flow curves over
+    time. It does so for all pair-wise interactions, for the nodes or for
+    the whole network, depending on the input array given.
+    - If 'arr' is the (N x N x nt) flow tensor, the output 'totalflow' will be
+    an N x N matrix with the ttp between every pair of nodes.
+    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    'totalflow' will be an array of length N, containing the ttp of the N nodes.
+    - If 'arr' is the array of length nt for the network flow, then 'totalflow'
+    will be a scalar, indicating the time at which whole-network flow peaks.
+
+    Parameters
+    ----------
+    arr : ndarray of adaptive shape, according to the case.
+        Temporal evolution of the flow. An array of shape N X N X nt for the
+        flow of the links, an array of shape N X nt for the flow of the nodes,
+        or a 1-dimensional array of length nt for the network flow.
+    timestep : real valued number.
+        Sampling time-step. This has to be the time-step employed to simulate
+        the temporal evolution encoded in 'arr'.
+    timespan : string, optional
+        If timespan = 'full', the function calculates the area under the
+        curve(s) along the whole time span (nt) that 'arr' contains, from t0 = 0
+        to tfinal.
+        If timespan = 'raise', the function calculates the area-under-the-
+        curve from t0 = 0, to the time the flow(s) reach a peak value.
+        If timespan = 'decay', it returns the area-under-the-curve for the
+        time spanning from the time the flow peaks, until the end of the signal.
+
+    Returns
+    -------
+    totalflow : ndarray of variable rank
+        The accumulated flow (area-under-the-curve) between pairs of nodes,
+        by nodes or by the whole network, over a period of time.
+    """
+
+    # 0) SECURITY CHECKS
+    ## TODO: Write a check to verify the curve has a real peak and decays after
+    ## the peak. Raise a warning that maybe longer simulation is needed.
+
+    # Check correct shape, in case input is the 3D array for the pair-wise flow
+    arr_shape = np.shape(arr)
+    if len(arr_shape) == 3:
+        if arr_shape[0] != arr_shape[1]:
+            raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+
+    # Validate options for optional variable 'timespan'
+    caselist = ['full', 'raise', 'decay']
+    if timespan not in caselist :
+        raise ValueError( "Optional parameter 'timespan' requires one of the following values: %s" %str(caselist) )
+
+    # 1) DO THE CALCULATIONS
+    # 1.1) Easy case. Integrate area-under-the-curve along whole time interval
+    if timespan == 'full':
+        totalflow = timestep * arr.sum(axis=-1)
+
+    # 1.2) Integrate area-under-the-curve until or from the peak time
+    else:
+        # Get the temporal indices at which the flow(s) peak
+        tpidx = arr.argmax(axis=-1)
+
+        # Initialise the final array
+        tf_shape = arr_shape[:-1]
+        totalflow = np.zeros(tf_shape, np.float)
+
+        # Sum the flow(s) over time, only in the desired time interval
+        nsteps = arr_shape[-1]
+        for t in range(1,nsteps):
+            # Check if the flow at time t should be accounted for or ignored
+            if timespan == 'raise':
+                counts = np.where(t < tpidx, True, False)
+            elif timespan == 'decay':
+                counts = np.where(t < tpidx, False, True)
+            # Sum the flow at the given iteration, if accepted
+            totalflow += (counts * arr[...,t])
+
+        # Finally, normalise the integral by the time-step
+        totalflow *= timestep
+
+    return totalflow
+
+
 
 ##
