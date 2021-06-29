@@ -27,6 +27,8 @@ TimeToPeak
     The time links, nodes or networks need to reach peak flow.
 TimeToDecay
     The time pair-wise interaction, nodes or networks need to decay back to zero.
+TotalFlow
+    The total accumulated flow of pair-wise, nodes or network flow over time.
 
 
 Reference and Citation
@@ -38,8 +40,9 @@ dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 116007 (2019).
 
 """
+# Standard library imports
 from __future__ import division, print_function
-
+# Third party packages
 import numpy as np
 import numpy.linalg
 import scipy.linalg

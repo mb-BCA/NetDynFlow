@@ -11,66 +11,20 @@
 """
 Analysis of dynamic communicability and flow
 ============================================
-Functions in testing version, before they are ported to the metrics.py module.
+Functions in testing version, before they are ported to their corresponding
+module for 'official' release into the package.
 
 """
+# Standard library imports
 from __future__ import division, print_function
-
+# Third party packages
 import numpy as np
 import numpy.linalg
 import scipy.linalg
+from numba import jit
 
 
 ## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
-def TimeToPeak(tensor, timestep):
-    """Returns the time at which links reach peak communicability.
-
-    Write more here ...  TTP is the time the response on node j take to reach
-    peak, after a perturbation at node i.
-
-    NOTE: See if you can use the same function for both the node evolution and
-    the link evolution, which are of different shape. I think you can achieve
-    that by simply setting 'axis=-1' to the argmax() function.
-
-    Parameters
-    ----------
-    tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape n_nodes x n_nodes x timesteps , where n_nodes is the number of nodes.
-    timestep : real valued number.
-        Sampling time-step. This has to be the time-step employed to simulate
-        the temporal evolution encoded in 'tensor'.
-
-    Returns
-    -------
-    ttp_matrix : ndarray of rank-2
-        An N x N matrix (n = number of nodes) contaning the time-to-peaks for
-        all pairs of nodes. TTP is the time the response on node j take to reach
-        peak, after a perturbation at node i.
-        Analogous to the graph distance matrix in binary graphs.
-    average_ttp : real valued.
-        The average time-to-peak distance in the network.
-        Analogous to the average pathlength of graphs.
-    """
-    # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, nt = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x n_t) expected'
-
-    # Get the indices at which every link peaks
-    ttp_matrix = tensor.argmax(axis=-1)
-
-    # Convert into time
-    tpoints = timestep * np.arange(nt, dtype=np.float)
-    ttp_matrix = tpoints[ttp_matrix]
-
-    # Calculate the average time-to-peak
-    average_ttp = (ttp_matrix.sum() - ttp_matrix.trace()) / (n1*(n1-1))
-
-    return (ttp_matrix, average_ttp)
-
-
 def NNt2tNN(signals):
     """This function transposes a 3D array from shape (N,N,nt) to (nt,N,N),
     where nt might be the number of time-points (or samples) and N = the number
@@ -99,6 +53,173 @@ def NNt2tNN(signals):
     # Transpose the array
     newsignals = np.transpose(signals, axes=(2,0,1))
     return newsignals
+
+
+## RANDOMIZATION OF (WEIGHTED) NETWORKS ########################################
+@jit
+def RandomiseWeightedNetwork1(con):
+    # GORKA: This version seems to be faster, with and without Numba.
+    # At least, it is never slower
+    """
+    Randomises a (weighted) connectivity matrix.
+    The function returns a random connectivity matrix with the same number of
+    links as the input matrix. The resulting connectivity has the same link
+    weights of the input matrix (thus total weight is also conserved) but the
+    input / output strengths of the nodes are not conserved. If 'con' is an
+    unweighted adjacency matrix, the function returns an Erdos-Renyi-like
+    random graph, of same size and number of links as 'con'.
+    If the binarisation of 'con' is a symmetric matrix, the result will also be
+    symmetric. Otherwise, if 'con' represents a directed network, the result
+    will be directed.
+    !!!!!!!
+    GORKA: In the current version, if the underlying graph is undirected but the
+    weights are asymmetric, the function won't work. The result will be a
+    symmetric matrix and the total weight will likely not be conserved !!!
+    !!!!!!!
+    Parameters
+    ----------
+    con : ndarray
+        Adjacency matrix of the (weighted) network.
+    Returns
+    -------
+    rewcon : ndarray
+        A connectivity matrix with links between same nodes as 'con' but the
+        link weights shuffled.
+    """
+    # 0) SECURITY CHECKS
+    if not type(con) == numpy.ndarray:
+        raise TypeError('Please enter the connectivity matrix as a numpy array.')
+
+    # 1) EXTRACT THE NEEDED INFORMATION FROM THE con MATRIX
+    N = len(con)
+
+    # Get whether 'con' is directed and calculate the number of links
+    if Reciprocity(con) == 1.0:
+        directed = False
+        L = int( round(0.5*con.astype(bool).sum()) )
+    else:
+        directed = True
+        L = con.astype(bool).sum()
+
+    # Get the list of weights
+    if directed:
+        nzidx = con.nonzero()
+        weights = con[nzidx]
+    else:
+        nzidx = np.triu(con, k=1).nonzero()
+        weights = con[nzidx]
+
+    # Get whether 'con' allows self-loops (non-zero diagonal elements)
+    if con.trace() == 0:
+        selfloops = False
+    else:
+        selfloops = True
+
+    # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
+    # Initialise the matrix. Give same dtype as 'con'
+    rewcon = np.zeros((N,N), dtype=con.dtype)
+
+    # Shuffle the list of weights
+    numpy.random.shuffle(weights)
+
+    # Finally, add the links at random
+    counter = 0
+    while counter < L:
+        # 2.1) Pick up two nodes at random
+        source = int(N * numpy.random.rand())
+        target = int(N * numpy.random.rand())
+
+        # 2.2) Check if they can be linked, otherwise look for another pair
+        if rewcon[source,target]: continue
+        if source == target and not selfloops: continue
+
+        rewcon[source,target] = weights[counter]
+        if not directed:
+            rewcon[target,source] = weights[counter]
+
+        counter += 1
+
+    return rewcon
+
+@jit
+def RandomiseWeightedNetwork2(con):
+    """
+    Randomises a (weighted) connectivity matrix.
+    The function returns a random connectivity matrix with the same number of
+    links as the input matrix. The resulting connectivity has the same link
+    weights of the input matrix (thus total weight is also conserved) but the
+    input / output strengths of the nodes are not conserved. If 'con' is an
+    unweighted adjacency matrix, the function returns an Erdos-Renyi-like
+    random graph, of same size and number of links as 'con'.
+    If the binarisation of 'con' is a symmetric matrix, the result will also be
+    symmetric. Otherwise, if 'con' represents a directed network, the result
+    will be directed.
+    !!!!!!!
+    GORKA: In the current version, if the underlying graph is undirected but the
+    weights are asymmetric, the function won't work. The result will be a
+    symmetric matrix and the total weight will likely not be conserved !!!
+    !!!!!!!
+    Parameters
+    ----------
+    con : ndarray
+        Adjacency matrix of the (weighted) network.
+    Returns
+    -------
+    rewcon : ndarray
+        A connectivity matrix with links between same nodes as 'con' but the
+        link weights shuffled.
+    """
+    # 0) SECURITY CHECKS
+    if not type(con) == numpy.ndarray:
+        raise TypeError('Please enter the connectivity matrix as a numpy array.')
+
+    # 1) EXTRACT THE NEEDED INFORMATION FROM THE con MATRIX
+    N = len(con)
+    nzidx = con.nonzero()
+    weights = con[nzidx]
+
+    # Get whether 'con' is directed and calculate the number of links
+    if Reciprocity(con) == 1.0:
+        directed = False
+        L = int( round(0.5*con.astype(bool).sum()) )
+    else:
+        directed = True
+        L = con.astype(bool).sum()
+
+    # Get whether 'con' allows self-loops (non-zero diagonal elements)
+    if con.trace() == 0:
+        selfloops = False
+    else:
+        selfloops = True
+
+    # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
+    # Initialise the matrix. Give same dtype as 'con'
+    rewcon = np.zeros((N,N), dtype=con.dtype)
+
+    # Finally, add the links at random
+    counter = 0
+    while counter < L:
+        # 2.1) Pick up two nodes at random
+        source = int(N * numpy.random.rand())
+        target = int(N * numpy.random.rand())
+
+        # 2.2) Check if they can be linked, otherwise look for another pair
+        if rewcon[source,target]: continue
+        if source == target and not selfloops: continue
+
+        # 2.3) If the nodes are linkable, place the link
+        rewcon[source,target] = 1
+        if not directed:
+            rewcon[target,source] = 1
+
+        counter += 1
+
+    # Shuffle the list of weights
+    numpy.random.shuffle(weights)
+    newnzidx = rewcon.nonzero()
+    rewcon[newnzidx] = weights
+
+    return rewcon
 
 
 ##

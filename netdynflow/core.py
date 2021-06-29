@@ -46,8 +46,9 @@ dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 116007 (2019).
 
 """
+# Standard libary imports
 from __future__ import division, print_function
-
+# Third party packages
 import numpy as np
 import numpy.linalg
 import scipy.linalg
