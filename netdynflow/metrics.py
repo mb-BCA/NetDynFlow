@@ -132,7 +132,7 @@ def Diversity(tensor):
 
     return diversity
 
-def TimeToPeak(arr, timestep):
+def Time2Peak(arr, timestep):
     """
     The time links, nodes or networks need to reach peak flow.
 
@@ -180,7 +180,7 @@ def TimeToPeak(arr, timestep):
 
     return ttp_arr
 
-def TimeToDecay(arr, dt, fraction=0.99):
+def Time2Decay(arr, dt, fraction=0.99):
     """
     The time pair-wise interaction, nodes or networks need to decay back to zero.
 
