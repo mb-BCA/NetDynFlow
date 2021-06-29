@@ -71,6 +71,34 @@ def TimeToPeak(tensor, timestep):
     return (ttp_matrix, average_ttp)
 
 
+def NNt2tNN(signals):
+    """This function transposes a 3D array from shape (N,N,nt) to (nt,N,N),
+    where nt might be the number of time-points (or samples) and N = the number
+    of nodes (or features). It exists basically because I wil constantly
+    forget the right order of the axes need.
+
+    WARNING! Remind that np.transpose() function returns a view of the array,
+    not a copy! If you want a copy with the entries properly sorted in memory,
+    you will need to call the copy explicitely, e.g:
+
+    arr2 = np.copy( tNN2NNt(arr1), order='C' )
+
+    """
+    ## TODO:
+    ## 1. Check namings to be coherent with rest of the package.
+    ## 2. Write the opposit function tNN2NNt()
+    ## 3. Properly document both functions.
+    ## 4. Move them to the tools.py module.
+
+    # Security checks
+    assert len(np.shape(signals)) == 3, "3D array required."
+    n0, n1, n2 = np.shape(signals)
+    if n0 != n1:
+        raise TypeError("3D array of shape (N,N,nt) required.")
+
+    # Transpose the array
+    newsignals = np.transpose(signals, axes=(2,0,1))
+    return newsignals
 
 
 ##
