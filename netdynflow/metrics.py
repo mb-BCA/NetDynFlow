@@ -160,7 +160,7 @@ def TimeToPeak(arr, timestep):
 
     Returns
     -------
-    ttp_arr : ndarray of rank-2
+    ttp_arr : ndarray of variable rank
         The time(s) taken for links, nodes or the network to reach peak flow.
         Output shape depends on input.
     """
@@ -216,7 +216,7 @@ def TimeToDecay(arr, dt, fraction=0.99):
 
     Returns
     -------
-    ttd_arr : ndarray of rank-2
+    ttd_arr : ndarray of variable rank
         The time(s) needed by the flows of pair-wise interactions, nodes or
         the network to decay back to zero. Output shape depends on input.
     """
