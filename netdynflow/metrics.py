@@ -68,10 +68,8 @@ def TotalEvolution(tensor):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     arr_shape = np.shape(arr)
-    if len(arr_shape) != 3:
-        raise ValueError("Input not aligned. Tensor of rank-3 expected")
-    if arr_shape[0] != arr_shape[1]:
-        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
+        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
     totaldyncom = tensor.sum(axis=(0,1))
 
@@ -98,10 +96,8 @@ def NodeEvolution(tensor, directed=False):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     arr_shape = np.shape(arr)
-    if len(arr_shape) != 3:
-        raise ValueError("Input not aligned. Tensor of rank-3 expected")
-    if arr_shape[0] != arr_shape[1]:
-        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
+        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
     # 1) Calculate the input and output node properties
     innodedyn = tensor.sum(axis=0)
@@ -128,10 +124,8 @@ def Diversity(tensor):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     arr_shape = np.shape(arr)
-    if len(arr_shape) != 3:
-        raise ValueError("Input not aligned. Tensor of rank-3 expected")
-    if arr_shape[0] != arr_shape[1]:
-        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
+        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
     diversity = np.zeros(n_t, np.float)
     diversity[0] = np.nan
@@ -177,10 +171,11 @@ def Time2Peak(arr, timestep):
     # 0) SECURITY CHECKS
     ## TODO: Write a check to verify the curve has a real peak and decays after
     ## the peak. Raise a warning that maybe longer simulation is needed.
+    # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
     if arr_shape==3:
-        assert arr_shape[0] == arr_shape[1], \
-            'Input not aligned. Shape (n_nodes x n_nodes x n_time) expected'
+        if arr_shape[0] != arr_shape[1]:
+            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
 
     # 1) Get the indices at which every element peaks
     ttp_arr = arr.argmax(axis=-1)
@@ -238,9 +233,9 @@ def Time2Decay(arr, dt, fraction=0.99):
 
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
-    if len(arr_shape) == 3:
+    if arr_shape==3:
         if arr_shape[0] != arr_shape[1]:
-            raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
 
     # 1) Set the level of cummulative flow to be reached over time
     targetcflow = fraction * arr.sum(axis=-1)
@@ -317,9 +312,9 @@ def TotalFlow(arr, timestep, timespan='full'):
 
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
-    if len(arr_shape) == 3:
+    if arr_shape==3:
         if arr_shape[0] != arr_shape[1]:
-            raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
+            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
 
     # Validate options for optional variable 'timespan'
     caselist = ['full', 'raise', 'decay']
