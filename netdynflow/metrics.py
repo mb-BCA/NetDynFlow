@@ -66,10 +66,12 @@ def TotalEvolution(tensor):
     """
 
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, n_t = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x n_t) expected'
+    # Check the input tensor has the correct 3D shape
+    arr_shape = np.shape(arr)
+    if len(arr_shape) != 3:
+        raise ValueError("Input not aligned. Tensor of rank-3 expected")
+    if arr_shape[0] != arr_shape[1]:
+        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
 
     totaldyncom = tensor.sum(axis=(0,1))
 
@@ -94,10 +96,12 @@ def NodeEvolution(tensor, directed=False):
         inputs of each node and the second for its outputs.
     """
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, n_t = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x timesteps) expected'
+    # Check the input tensor has the correct 3D shape
+    arr_shape = np.shape(arr)
+    if len(arr_shape) != 3:
+        raise ValueError("Input not aligned. Tensor of rank-3 expected")
+    if arr_shape[0] != arr_shape[1]:
+        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
 
     # 1) Calculate the input and output node properties
     innodedyn = tensor.sum(axis=0)
@@ -122,10 +126,12 @@ def Diversity(tensor):
         Array containing temporal evolution of the diversity.
     """
     # 0) SECURITY CHECKS
-    tensor_shape = np.shape(tensor)
-    assert len(tensor_shape) == 3, 'Input not aligned. Tensor of rank-3 expected'
-    n1, n2, n_t = tensor_shape
-    assert n1 == n2, 'Input not aligned. Shape (n_nodes x n_nodes x n_t) expected'
+    # Check the input tensor has the correct 3D shape
+    arr_shape = np.shape(arr)
+    if len(arr_shape) != 3:
+        raise ValueError("Input not aligned. Tensor of rank-3 expected")
+    if arr_shape[0] != arr_shape[1]:
+        raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
 
     diversity = np.zeros(n_t, np.float)
     diversity[0] = np.nan
@@ -231,10 +237,10 @@ def Time2Decay(arr, dt, fraction=0.99):
     ## The check should rise a warning to simulate for longer time.
 
     # Check correct shape, in case input is the 3D array for the pair-wise flow
-    arr_shape = np.array(np.shape(arr), np.int)
+    arr_shape = np.shape(arr)
     if len(arr_shape) == 3:
-        assert arr_shape[0] == arr_shape[1], \
-            'Input not aligned. Shape (n_nodes x n_nodes x n_time) expected'
+        if arr_shape[0] != arr_shape[1]:
+            raise ValueError( "Shape (N x N x nt) expected. When 'arr' is a 3D array, first two dimensions must be square. If your 'arr' has shape (nt x N x N), see function tNN2NNt() for reshaping." )
 
     # 1) Set the level of cummulative flow to be reached over time
     targetcflow = fraction * arr.sum(axis=-1)
@@ -349,6 +355,8 @@ def TotalFlow(arr, timestep, timespan='full'):
         totalflow *= timestep
 
     return totalflow
+
+
 
 
 
