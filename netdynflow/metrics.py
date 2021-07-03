@@ -19,8 +19,8 @@ Metrics derived from the tensors
 --------------------------------
 TotalEvolution
     Calculates total communicability or flow over time for a network.
-NodeEvolution
-    Temporal evolution of all nodes' input and output communicability or flow.
+NodeFlows
+    Temporal evolution of the input and output flows of each node.
 Diversity
     Temporal diversity for a networks dynamic communicability or flow.
 TimeToPeak
@@ -67,44 +67,93 @@ def TotalEvolution(tensor):
 
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
-    arr_shape = np.shape(arr)
-    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
+    tensor_shape = np.shape(tensor)
+    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
         raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
     totaldyncom = tensor.sum(axis=(0,1))
 
     return totaldyncom
 
-def NodeEvolution(tensor, directed=False):
+def NodeFlows(tensor, selfloops=False):
     """
-    Temporal evolution of all nodes' input and output communicability or flow.
+    Temporal evolution of the input and output flows of each node.
 
     Parameters
     ----------
     tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape n_nodes x n_nodes x timesteps, where n_nodes is the number of nodes.
+    selfloops : boolean
+        If False (default), the function only returns the in-flows into a node
+        due to perturbations on other  nodes, and the out-flows that the node
+        causes on other nodes, excluding any initial perturbations on itself.
+        If True, the function includes the effect of the perturbation on itself
+        for the calculation of the input and output flows.
 
     Returns
     -------
     nodedyncom : tuple.
         Temporal evolution of the communicability or flow for all nodes.
-        The result consists of a tuple of two ndarrays of shape (n_nodes x timesteps)
+        The result consists of a tuple of two ndarrays of shape (N x nt)
         each. The first is for the sum of communicability interactions over all
         inputs of each node and the second for its outputs.
     """
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
-    arr_shape = np.shape(arr)
+    arr_shape = np.shape(tensor)
     if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
         raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
     # 1) Calculate the input and output node properties
-    innodedyn = tensor.sum(axis=0)
-    outnodedyn = tensor.sum(axis=1)
-    nodedyn = ( innodedyn, outnodedyn )
+    # When self-loops shall be included to the temporal nodel flows
+    if selfloops:
+        inflows = tensor.sum(axis=0)
+        outflows = tensor.sum(axis=1)
 
-    return nodedyn
+    # Excluding the self-flows a node due to inital perturbation on itself.
+    else:
+        N,N, nt = arr_shape
+        inflows = np.zeros((N,nt), np.float)
+        outflows = np.zeros((N,nt), np.float)
+        for i in range(N):
+            inflows[i] = tensor[:,i,:].sum(axis=0) - tensor[i,i]
+            outflows[i] = tensor[i,:,:].sum(axis=0) - tensor[i,i]
+
+    node_flows = ( inflows, outflows )
+    return node_flows
+
+# def NodeEvolution(tensor):
+#     ### DEPRECATED!! Use NodeFlows() instead!!
+#     """
+#     Temporal evolution of all nodes' input and output communicability or flow.
+#
+#     Parameters
+#     ----------
+#     tensor : ndarray of rank-3
+#         Temporal evolution of the network's dynamic communicability. A tensor
+#         of shape n_nodes x n_nodes x timesteps, where n_nodes is the number of nodes.
+#
+#     Returns
+#     -------
+#     nodedyncom : tuple.
+#         Temporal evolution of the communicability or flow for all nodes.
+#         The result consists of a tuple of two ndarrays of shape (n_nodes x timesteps)
+#         each. The first is for the sum of communicability interactions over all
+#         inputs of each node and the second for its outputs.
+#     """
+#     # 0) SECURITY CHECKS
+#     # Check the input tensor has the correct 3D shape
+#     tensor_shape = np.shape(tensor)
+#     if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
+#         raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
+#
+#     # 1) Calculate the input and output node properties
+#     innodedyn = tensor.sum(axis=0)
+#     outnodedyn = tensor.sum(axis=1)
+#     nodedyn = ( innodedyn, outnodedyn )
+#
+#     return nodedyn
 
 def Diversity(tensor):
     """
@@ -123,10 +172,11 @@ def Diversity(tensor):
     """
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
-    arr_shape = np.shape(arr)
-    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
+    tensor_shape = np.shape(tensor)
+    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
         raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
+    n_t = tensor_shape[2]
     diversity = np.zeros(n_t, np.float)
     diversity[0] = np.nan
     for i_t in range(1,n_t):
