@@ -143,32 +143,29 @@ def RandomiseWeightedNetwork1(con):
 
 @jit
 def RandomiseWeightedNetwork2(con):
+    ## Deprecated function. Not desirable output. See the docstring.
     """
     Randomises a (weighted) connectivity matrix.
+
     The function returns a random connectivity matrix with the same number of
-    links as the input matrix. The resulting connectivity has the same link
-    weights of the input matrix (thus total weight is also conserved) but the
-    input / output strengths of the nodes are not conserved. If 'con' is an
-    unweighted adjacency matrix, the function returns an Erdos-Renyi-like
-    random graph, of same size and number of links as 'con'.
-    If the binarisation of 'con' is a symmetric matrix, the result will also be
-    symmetric. Otherwise, if 'con' represents a directed network, the result
-    will be directed.
-    !!!!!!!
-    GORKA: In the current version, if the underlying graph is undirected but the
-    weights are asymmetric, the function won't work. The result will be a
-    symmetric matrix and the total weight will likely not be conserved !!!
-    !!!!!!!
+    links as the input matrix.
+    ACHTUNG!!! However, the weights are always randomised such
+    that they are asymmetric. Therefore, if 'con' is symmetric weighted matrix,
+    the function returns an undirected underlying graph, but with the weights
+    asymmetric. So, I don't like it.
+
     Parameters
     ----------
     con : ndarray
         Adjacency matrix of the (weighted) network.
+
     Returns
     -------
     rewcon : ndarray
         A connectivity matrix with links between same nodes as 'con' but the
         link weights shuffled.
     """
+
     # 0) SECURITY CHECKS
     if not type(con) == numpy.ndarray:
         raise TypeError('Please enter the connectivity matrix as a numpy array.')
