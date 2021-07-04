@@ -12,8 +12,16 @@
 Network and surrogate generation module
 =======================================
 
-Functions to gnerate different types of networks (deterministic and random),
-and to generate surrogates out of given binary or weighted networks.
+Functions to construct synthetic networks and generate surrogates out of given
+binary or weighted networks.
+
+Generation and randomization of binary graphs
+---------------------------------------------
+These functions are all imported from the GAlib library. Please see doctsring
+of module 'galib.models' for further documentation and a list of functions.  ::
+
+    >>> import galib
+    >>> help(galib.models)
 
 Deterministic network models
 ----------------------------
@@ -29,19 +37,24 @@ Function1
 Function2
     Short description of the function.
 
-Surrogate network generation
-----------------------------
+Weighted surrogate networks
+---------------------------
 ShuffleLinkWeights
     Randomly re-allocates the weights associated to the links.
 
 """
+# Standard library imports
 from __future__ import division, print_function
-
+# Third party packages
 import numpy as np
 import numpy.linalg
 import scipy.linalg
+# Import GAlib for graph analysis and graph generation tools
+### ACHTUNG!! For now I am importing GAlib but, for the long run, we must
+### decide whether we want GAlib as a dependency of NetDynFlow, or we
+### prefer to copy/paste the useful functions from GAlib into this module and
+### therefore make NetDynFlow independent of GAlib.
 import galib
-from galib import (Reciprocity )
 from galib.models import*
 
 

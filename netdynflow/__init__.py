@@ -146,6 +146,7 @@ from .core import *
 from . import metrics
 from .metrics import *
 from . import tools
+from . import netmodels
 from . import metrics_test
 
 
