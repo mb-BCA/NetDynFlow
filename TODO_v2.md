@@ -9,11 +9,9 @@
 	- We need a function to extract and study the evolution of the self-interactions. That is, the temporal response of a node to a perturbation on itself at time t = 0. This is in a way what Ernesto called "returnability" but we have that over time. Remind that in graphs the clustering coefficient is indeed calculated in this manner, for loops of lenght = 3, but longer loops could be included.
 
 - Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
-	- Generate graph of different kinds (deterministic, random graphs, modular, etc.) All these already exist in *pyGAlib*. The question is whether we want to import GAlib and use them from there (this adds one more dependency to the library) or we want to just copy/paste them here.
-	- Graph surrogates are also part of GAlib. Same question.
 	- A function to generate random weighted networks of different distributions.
-	- Random weighted networks from the weight distribution of a given network (conserve exactly the same weights.
-	- A function to shuffle only the weights of the links in a network, conserving the location of the links (same binary net, randomised weights).
+	- In spatially embedded networks, a function to assign the stronger links to the closest nodes.
+	- Weighted ring lattice, with stronger weights between neighbouring nodes (model by Muldoon et al.)
 
 - Add functions `NNt2tNN()` and `tNN2NNt()` for transposing the flow tensors in the *tools.py* module.
 
@@ -31,6 +29,11 @@
 	- A new parameter `selfloops` has been added to function `NodeFlows()`. If `selfloops = True` the output will include the consequence of the initial perturbation applied to a node on itself. If `selfloops = False` (default) then the function only returns the in-flows into a node due to the perturbations on other nodes, and account only for the flow that a nodel provokes on other nodes, not itself.
 	- Revisit the function to get the network and node flows over timein *metrics.py*: `TotalEvolution()` and  `NodeEvolution()`. We should have an optional parameter named `selfloops=False/True` to exclude or include the self-interactions from the cross-nodal interactions. At this moment, the calculations include the self-interactions but I am not sure we should do that. The evolution and strength of the self-interactions (response of a node to a perturbation on itself at t = 0) carry their own meaning and should be characterised separately. Re-think how to do this in the algorithm.
 
+
+- Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
+	- I have imported *pyGAlib* in module *netmodels.py* such that we can use all the (di) graph generation and randomization functions. In the future we could think whether we want GAlib to be a dependence of netdynflow, or we prefere to duplicate those functions here.
+	- Random weighted surrogate networks from an input connectivity matrix: `RandomiseWeightedNetwork()`.
+	- A function to shuffle only the weights of the links in a network, conserving the location of the links (same binary net, randomised weights): `ShuffleLinkWeights()`.
 
 
 
