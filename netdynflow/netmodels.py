@@ -112,22 +112,23 @@ def RandomiseWeightedNetwork(con):
     """
     Randomises a connectivity matrix and its weights.
 
-    Returns a random connectivity matrix with the same number of links and
-    same link weights as the input matrix 'con'. Therefore, both the total
-    weight and the link weight distribution are conserved but the input/output
-    degrees and node strengths are not.
+    Returns a random connectivity matrix (Erdos-Renyi-type) with the same number
+    of links and same link weights as the input matrix 'con'. Therefore, both
+    the total weight (sum of link weights) and the distribution of link weights
+    are conserved, but the input/output degrees of the nodes, or their individual
+    strengths, are not conserved.
 
     The function identifies some properties of 'con' in order to conserve
     elementary properties of 'con'. For example:
-    1) The resulting random weighted network will only contain self-connections
+    (1) The resulting random weighted network will only contain self-connections
     (non-zero diagonal entries) if 'con' contains self-connections.
-    2) If 'con' is an unweighted adjacency matrix (directed or undirected), the
+    (2) If 'con' is an unweighted adjacency matrix (directed or undirected), the
     result is an Erdos-Renyi-type random graph (directed or undirected),
     of same size and number of links as 'con'.
-    3) If 'con' is an undirected network but contains asymmetric link weights,
+    (3) If 'con' is an undirected network but contains asymmetric link weights,
     the result will be an undirected random graph with asymmetric weights.
-    4) If 'con is a directed weighted network, the result will be a directed and
-    weighted network. In this case, weights cannot be symmetric.
+    (4) If 'con is a directed weighted network, the result will be a directed
+    and weighted network. In this case, weights cannot be symmetric.
 
     Parameters
     ----------
