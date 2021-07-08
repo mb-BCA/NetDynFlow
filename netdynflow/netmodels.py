@@ -59,12 +59,12 @@ import galib
 from galib.models import*
 
 
-## DETERMINISTIC NETWORK MODELS ################################################
+## DETERMINISTIC GRAPH MODELS ##################################################
+# NOTE: See GAlib.models package
 
 
-
-## RANDOM NETWORK MODELS #######################################################
-
+## RANDOM GRAPH MODELS #########################################################
+# NOTE: See GAlib.models package
 
 
 ## GENERATION OF SURROGATE NETWORKS ############################################
