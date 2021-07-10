@@ -17,30 +17,23 @@ binary or weighted networks.
 
 Generation and randomization of binary graphs
 ---------------------------------------------
-These functions are all imported from the GAlib library. Please see doctsring
-of module 'galib.models' for further documentation and a list of functions.  ::
+These functions are all imported from the GAlib library (https://github.com/gorkazl/pyGAlib)
+Please see doctsring of module 'galib.models' for a list of functions.  ::
 
     >>> import galib
     >>> help(galib.models)
 
-Deterministic network models
-----------------------------
-Function1
-    Short description of the function.
-Function2
-    Short description of the function.
-
-Random network models
-----------------------
-Function1
-    Short description of the function.
-Function2
-    Short description of the function.
-
-Weighted surrogate networks
----------------------------
+Surrogates for weighted networks
+--------------------------------
 ShuffleLinkWeights
     Randomly re-allocates the weights associated to the links.
+
+RandomiseWeightedNetwork
+    Randomises a connectivity matrix and its weights.
+
+Spatially embedded (weighted) networks
+--------------------------------------
+
 
 """
 # Standard library imports
@@ -207,6 +200,10 @@ def RandomiseWeightedNetwork(con):
         counter += 1
 
     return rewcon
+
+
+## SPATIALLY EMBEDDED NETWORKS #################################################
+
 
 
 
