@@ -18,7 +18,7 @@ binary or weighted networks.
 Generation and randomization of binary graphs
 ---------------------------------------------
 These functions are all imported from the GAlib library (https://github.com/gorkazl/pyGAlib)
-Please see doctsring of module 'galib.models' for a list of functions.  ::
+Please see doctsring of module "galib.models" for a list of functions.  ::
 
     >>> import galib
     >>> help(galib.models)
@@ -77,16 +77,16 @@ def ShuffleLinkWeights(con):
     Returns
     -------
     newcon : ndarray of rank-2 and shape (N x N).
-        A connectivity matrix with links between same nodes as 'con' but the
+        A connectivity matrix with links between same nodes as `con` but the
         link weights shuffled.
 
     """
     # 0) SECURITY CHECKS
     if not type(con) == numpy.ndarray:
-        raise TypeError('Please enter the connectivity matrix as a numpy array.')
+        raise TypeError( "Please enter the connectivity matrix as a numpy array." )
     con_shape = np.shape(con)
     if (len(con_shape) != 2) or (con_shape[0] != con_shape[1]):
-        raise ValueError("Input not aligned. 'con' should be a 2D array of shape (N x N).")
+        raise ValueError( "Input not aligned. 'con' should be a 2D array of shape (N x N)." )
 
     # 1) EXTRACT THE CONSTRAINTS FROM THE con MATRIX
     N = con_shape[0]
@@ -106,21 +106,21 @@ def RandomiseWeightedNetwork(con):
     Randomises a connectivity matrix and its weights.
 
     Returns a random connectivity matrix (Erdos-Renyi-type) with the same number
-    of links and same link weights as the input matrix 'con'. Therefore, both
+    of links and same link weights as the input matrix `con`. Therefore, both
     the total weight (sum of link weights) and the distribution of link weights
     are conserved, but the input/output degrees of the nodes, or their individual
     strengths, are not conserved.
 
-    The function identifies some properties of 'con' in order to conserve
-    elementary properties of 'con'. For example:
+    The function identifies some properties of `con` in order to conserve
+    elementary properties of `con`. For example:
     (1) The resulting random weighted network will only contain self-connections
-    (non-zero diagonal entries) if 'con' contains self-connections.
-    (2) If 'con' is an unweighted adjacency matrix (directed or undirected), the
+    (non-zero diagonal entries) if `con` contains self-connections.
+    (2) If `con` is an unweighted adjacency matrix (directed or undirected), the
     result is an Erdos-Renyi-type random graph (directed or undirected),
-    of same size and number of links as 'con'.
-    (3) If 'con' is an undirected network but contains asymmetric link weights,
+    of same size and number of links as `con`.
+    (3) If `con` is an undirected network but contains asymmetric link weights,
     the result will be an undirected random graph with asymmetric weights.
-    (4) If 'con is a directed weighted network, the result will be a directed
+    (4) If `con` is a directed weighted network, the result will be a directed
     and weighted network. In this case, weights cannot be symmetric.
 
     Parameters
@@ -131,27 +131,27 @@ def RandomiseWeightedNetwork(con):
     Returns
     -------
     newcon : ndarray of rank-2 and shape (N x N)
-        A connectivity matrix with links between same nodes as 'con' but the
+        A connectivity matrix with links between same nodes as `con` but the
         link weights shuffled.
 
     """
     # 0) SECURITY CHECKS
     if not type(con) == numpy.ndarray:
-        raise TypeError('Please enter the connectivity matrix as a numpy array.')
+        raise TypeError( "Please enter the connectivity matrix as a numpy array." )
     con_shape = np.shape(con)
     if (len(con_shape) != 2) or (con_shape[0] != con_shape[1]):
-        raise ValueError("Input not aligned. 'con' should be a 2D array of shape (N x N).")
+        raise ValueError( "Input not aligned. 'con' should be a 2D array of shape (N x N)." )
 
     # 1) EXTRACT INFORMATION NEEDED FROM THE con MATRIX
     N = con_shape[0]
 
-    # Find out whether 'con' is symmetric
+    # Find out whether `con` is symmetric
     if abs(con - con.T).sum() == 0:
         symmetric = True
     else:
         symmetric = False
 
-    # Find out whether 'con' is directed and calculate the number of links
+    # Find out whether `con` is directed and calculate the number of links
     if Reciprocity(con) == 1.0:
         directed = False
         L = int( round(0.5*con.astype(bool).sum()) )
@@ -159,7 +159,7 @@ def RandomiseWeightedNetwork(con):
         directed = True
         L = con.astype(bool).sum()
 
-    # Find out whether 'con' allows self-loops (non-zero diagonal elements)
+    # Find out whether `con` allows self-loops (non-zero diagonal elements)
     if con.trace() == 0:
         selfloops = False
     else:
@@ -174,7 +174,7 @@ def RandomiseWeightedNetwork(con):
         weights = con[nzidx]
 
     # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
-    # Initialise the matrix. Give same dtype as 'con'
+    # Initialise the matrix. Give same dtype as `con`
     newcon = np.zeros((N,N), dtype=con.dtype)
 
     # Shuffle the list of weights
@@ -208,9 +208,9 @@ def SpatialWeightSorting(con, distmat, descending=True):
 
     The function reads the weights from a connectivity matrix and re-allocates
     them according to the euclidean distance between the nodes. The sorting
-    conserves the position of the links, therefore, if 'con' is a binary graph,
-    the function will return a copy of 'con'. The distance between nodes shall
-    be given as input 'distmat'.
+    conserves the position of the links, therefore, if `con` is a binary graph,
+    the function will return a copy of `con`. The distance between nodes shall
+    be given as input `distmat`.
 
     If descending = True, the larger weigths are assigned to the links between
     closer nodes, and the smaller weights to the links between distant nodes.
@@ -226,7 +226,7 @@ def SpatialWeightSorting(con, distmat, descending=True):
         A matrix containing the spatial distance between all pair of ROIs.
         This can be either the euclidean distance, the fiber length or any
         other geometric distance.
-    descending : bool
+    descending : boolean, optional.
         Determines whether links weights are assigend in descending or in
         ascending order, according to the euclidean distance between the nodes.
 
