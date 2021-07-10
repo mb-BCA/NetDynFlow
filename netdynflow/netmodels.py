@@ -203,7 +203,67 @@ def RandomiseWeightedNetwork(con):
 
 
 ## SPATIALLY EMBEDDED NETWORKS #################################################
+def SpatialWeightSorting(con, distmat, descending=True):
+    """Sorts the link weights of a network by the spatial distance between nodes.
 
+    The function reads the weights from a connectivity matrix and re-allocates
+    them according to the euclidean distance between the nodes. The sorting
+    conserves the position of the links, therefore, if 'con' is a binary graph,
+    the function will return a copy of 'con'. The distance between nodes shall
+    be given as input 'distmat'.
+
+    If descending = True, the larger weigths are assigned to the links between
+    closer nodes, and the smaller weights to the links between distant nodes.
+
+    If descending = False, the larger weights are assigned to the links between
+    distant nodes, and the smaller weights to links between close nodes.
+
+    Parameters
+    ----------
+    con : ndarray, rank-2.
+        Adjacency matrix of the (weighted) network.
+    distmat : ndarray, rank-2.
+        A matrix containing the spatial distance between all pair of ROIs.
+        This can be either the euclidean distance, the fiber length or any
+        other geometric distance.
+    descending : bool
+        Determines whether links weights are assigend in descending or in
+        ascending order, according to the euclidean distance between the nodes.
+
+    Returns
+    -------
+    sortedcon : ndarray
+        Connectivity matrix with weights sorted according to spatial distance
+        between the nodes.
+
+    """
+    # 0) SECURITY CHECKS
+    con_shape = np.shape(con)
+    dist_shape = np.shape(distmat)
+    if con_shape != dist_shape:
+        raise ValueError( "Data not aligned. 'con' and 'distmat' of same shape expectted. " )
+
+    # 1) EXTRACT THE NEEDED INFORMATION FROM THE con MATRIX
+    N = len(con)
+    # The indices of the links and their weights, distance
+    nzidx = con.nonzero()
+    weights = con[nzidx]
+    distances = distmat[nzidx]
+
+    # 2) SORT THE WEIGHTS IN DESCENDING ORDER
+    weights.sort()
+    if descending:
+        weights = weights[::-1]
+
+    # Get the indices that would sort the links by distance
+    sortdistidx = distances.argsort()
+    newidx = (nzidx[0][sortdistidx], nzidx[1][sortdistidx])
+
+    # 3) CREATE THE NEW CONNECTIVITY WITH THE LINK WEIGHTS SORTED SPATIALLY
+    sortedcon = np.zeros((N,N), np.float)
+    sortedcon[newidx] = weights
+
+    return sortedcon
 
 
 
