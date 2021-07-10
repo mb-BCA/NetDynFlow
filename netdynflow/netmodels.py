@@ -76,7 +76,7 @@ def ShuffleLinkWeights(con):
 
     Returns
     -------
-    rewcon : ndarray
+    newcon : ndarray of rank-2 and shape (N x N).
         A connectivity matrix with links between same nodes as 'con' but the
         link weights shuffled.
 
@@ -95,10 +95,10 @@ def ShuffleLinkWeights(con):
 
     # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
     numpy.random.shuffle(weights)
-    rewcon = np.zeros((N,N), dtype=con.dtype)
-    rewcon[nzidx] = weights
+    newcon = np.zeros((N,N), dtype=con.dtype)
+    newcon[nzidx] = weights
 
-    return rewcon
+    return newcon
 
 @jit
 def RandomiseWeightedNetwork(con):
@@ -130,7 +130,7 @@ def RandomiseWeightedNetwork(con):
 
     Returns
     -------
-    rewcon : ndarray
+    newcon : ndarray of rank-2 and shape (N x N)
         A connectivity matrix with links between same nodes as 'con' but the
         link weights shuffled.
 
@@ -175,7 +175,7 @@ def RandomiseWeightedNetwork(con):
 
     # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
     # Initialise the matrix. Give same dtype as 'con'
-    rewcon = np.zeros((N,N), dtype=con.dtype)
+    newcon = np.zeros((N,N), dtype=con.dtype)
 
     # Shuffle the list of weights
     numpy.random.shuffle(weights)
@@ -188,18 +188,18 @@ def RandomiseWeightedNetwork(con):
         target = int(N * numpy.random.rand())
 
         # 2.2) Check if they can be linked, otherwise look for another pair
-        if rewcon[source,target]: continue
+        if newcon[source,target]: continue
         if source == target and not selfloops: continue
 
         # 2.3) Perform the rewiring
-        rewcon[source,target] = weights[counter]
+        newcon[source,target] = weights[counter]
         if not directed and symmetric:
-            rewcon[target,source] = weights[counter]
+            newcon[target,source] = weights[counter]
         elif not directed and not symmetric:
-            rewcon[target,source] = weights[-(counter+1)]
+            newcon[target,source] = weights[-(counter+1)]
         counter += 1
 
-    return rewcon
+    return newcon
 
 
 ## SPATIALLY EMBEDDED NETWORKS #################################################
@@ -232,7 +232,7 @@ def SpatialWeightSorting(con, distmat, descending=True):
 
     Returns
     -------
-    sortedcon : ndarray
+    newcon : ndarray of rank-2 and shape (N x N).
         Connectivity matrix with weights sorted according to spatial distance
         between the nodes.
 
@@ -260,10 +260,10 @@ def SpatialWeightSorting(con, distmat, descending=True):
     newidx = (nzidx[0][sortdistidx], nzidx[1][sortdistidx])
 
     # 3) CREATE THE NEW CONNECTIVITY WITH THE LINK WEIGHTS SORTED SPATIALLY
-    sortedcon = np.zeros((N,N), np.float)
-    sortedcon[newidx] = weights
+    newcon = np.zeros((N,N), np.float)
+    newcon[newidx] = weights
 
-    return sortedcon
+    return newcon
 
 
 
