@@ -76,7 +76,7 @@ def ShuffleLinkWeights(con):
 
     Returns
     -------
-    rewmatrix : ndarray
+    rewcon : ndarray
         A connectivity matrix with links between same nodes as 'con' but the
         link weights shuffled.
 
@@ -95,10 +95,10 @@ def ShuffleLinkWeights(con):
 
     # 2) GENERATE THE NEW NETWORK WITH THE WEIGHTS SHUFFLED
     numpy.random.shuffle(weights)
-    rewmatrix = np.zeros((N,N), dtype=con.dtype)
-    rewmatrix[nzidx] = weights
+    rewcon = np.zeros((N,N), dtype=con.dtype)
+    rewcon[nzidx] = weights
 
-    return rewmatrix
+    return rewcon
 
 @jit
 def RandomiseWeightedNetwork(con):
