@@ -33,9 +33,14 @@ RandomiseWeightedNetwork
 
 Spatially embedded (weighted) networks
 --------------------------------------
+SpatialWeightSorting
+    Sorts the link weights of a network by the spatial distance between nodes.
+SpatialLatticeFromNetwork
+    Generates spatial weighted lattices with same weights as `con`.
 
 
 """
+
 # Standard library imports
 from __future__ import division, print_function
 # Third party packages
@@ -145,13 +150,13 @@ def RandomiseWeightedNetwork(con):
     # 1) EXTRACT INFORMATION NEEDED FROM THE con MATRIX
     N = con_shape[0]
 
-    # Find out whether `con` is symmetric
+    # Find out whether con is symmetric
     if abs(con - con.T).sum() == 0:
         symmetric = True
     else:
         symmetric = False
 
-    # Find out whether `con` is directed and calculate the number of links
+    # Find out whether con is directed and calculate the number of links
     if Reciprocity(con) == 1.0:
         directed = False
         L = int( round(0.5*con.astype(bool).sum()) )
@@ -202,7 +207,7 @@ def RandomiseWeightedNetwork(con):
     return newcon
 
 
-## SPATIALLY EMBEDDED NETWORKS #################################################
+## SPATIALLY EMBEDDED SURROGATES ###############################################
 def SpatialWeightSorting(con, distmat, descending=True):
     """Sorts the link weights of a network by the spatial distance between nodes.
 
@@ -265,6 +270,76 @@ def SpatialWeightSorting(con, distmat, descending=True):
 
     return newcon
 
+def SpatialLatticeFromNetwork(con, distmat, descending=True):
+    """Generates spatial weighted lattices with same weights as `con`.
+
+    The function reads the weights from a connectivity matrix and generates a
+    spatially embedded weighted lattice, assigning the largest weights in
+    descending order to the nodes that are closer from each other. Therefore,
+    it requires also the euclidean distance between the nodes is given as input.
+
+    If `con` is a binary graph of L links, the function returns a graph with
+    links between the L spatially closest pairs of nodes.
+
+    If `descending = True`, the larger weigths are assigned to the links between
+    closer nodes, and the smaller weights to the links between distant nodes.
+
+    If `descending = False`, the larger weights are assigned to the links between
+    distant nodes, and the smaller weights to links between close nodes.
+
+    Note
+    ----
+    Even if `con` is either a directed network or undirected but with asymmetric
+    weights, the resulting lattice will be undirected and (quasi-)symmetric
+    due to the fact that the spatial distance between two nodes is symmetric.
+
+    Parameters
+    ----------
+    con : ndarray, rank-2.
+        Adjacency matrix of the (weighted) network.
+    distmat : ndarray, rank-2.
+        A matrix containing the spatial distance between all pair of ROIs.
+        This can be either the euclidean distance, the fiber length or any
+        other geometric distance.
+    descending : boolean, optional.
+        Determines whether links weights are assigend in descending or in
+        ascending order, according to the euclidean distance between the nodes.
+
+    Returns
+    -------
+    newcon : ndarray of rank-2 and shape (N x N).
+        Connectivity matrix of a weighted lattice.
+
+    """
+    # 0) SECURITY CHECKS
+    con_shape = np.shape(con)
+    dist_shape = np.shape(distmat)
+    if con_shape != dist_shape:
+        raise ValueError( "Data not aligned. 'con' and 'distmat' of same shape expectted. " )
+
+    # 1) EXTRACT THE NEEDED INFORMATION FROM THE con MATRIX
+    N = len(con)
+
+    # Sort the weights of the network
+    weights = con.flatten()
+    weights.sort()
+    if descending:
+        weights = weights[::-1]
+
+    # Find the indices that sort the euclidean distances, from shorter to longer
+    if descending:
+        distmat[np.diag_indices(N)] = np.inf
+    else:
+        distmat[np.diag_indices(N)] = 0.0
+    distances = distmat.ravel()
+    sortdistidx = distances.argsort()
+    newidx = np.unravel_index( sortdistidx, (N,N) )
+
+    # And finally, create the coonectivity matrix with the weights sorted
+    newcon = np.zeros((N,N), np.float)
+    newcon[newidx] = weights
+
+    return newcon
 
 
 
