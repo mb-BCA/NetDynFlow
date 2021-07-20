@@ -27,7 +27,7 @@ TimeToPeak
     The time links, nodes or networks need to reach peak flow.
 TimeToDecay
     The time pair-wise interaction, nodes or networks need to decay back to zero.
-TotalFlow
+AreaUnderCurve
     The total accumulated flow of pair-wise, nodes or network flow over time.
 
 
@@ -278,7 +278,7 @@ def Time2Decay(arr, dt, fraction=0.99):
 
     return ttd_arr
 
-def TotalFlow(arr, timestep, timespan='full'):
+def AreaUnderCurve(arr, timestep, timespan='full'):
     ## TODO: The name of this function needs good thinking. Different options
     ## are possible depending on the interpretation and naming of other
     ## variables or metrics.
