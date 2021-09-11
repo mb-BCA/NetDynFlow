@@ -8,7 +8,8 @@ GORKA: To be honest, I don't even like the word communicability. What the flows 
 
 
 - model-based network analysis --> flow-based, diffusion-based, response-based, ...
-- communicability --> activity, influence, flow, **response**.
+- communicability --> activity, influence, flow, **response**
+- dynamic communicability --> temporal communicability.
 - total communicability --> network communicability, network response, network flow, … ("total" is not a good term because it could mean the whole-network, or the total communicability over time.)
 - in-/out-communicability --> node communicability.
 - in-communicability --> node sensitivity/reactivity?
