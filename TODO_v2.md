@@ -13,9 +13,9 @@
 	- In spatially embedded networks, a function to assign the stronger links to the closest nodes.
 	- Weighted ring lattice, with stronger weights between neighbouring nodes (model by Muldoon et al.)
 
-- Add functions `NNt2tNN()` and `tNN2NNt()` for transposing the flow tensors in the *tools.py* module.
-
-- Think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. Stablish a coherent naming system that is general enough, precise and will survive over time to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals.  
+- Think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. Stablish a coherent naming system that is general enough, precise and will survive over time to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals. 
+- Function `Time2Peak()` should return `np.inf` for those pair-wise elements when there is no input in a node. Now, it returns zeros in those cases.
+- Same of function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
 
 
 
@@ -35,6 +35,8 @@
 	- Random weighted surrogate networks from an input connectivity matrix: `RandomiseWeightedNetwork()`.
 	- A function to shuffle only the weights of the links in a network, conserving the location of the links (same binary net, randomised weights): `ShuffleLinkWeights()`.
 
+
+- Add functions `NNt2tNN()` and `tNN2NNt()` for transposing the flow tensors in the *tools.py* module.
 
 
 
