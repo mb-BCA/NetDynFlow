@@ -29,8 +29,6 @@ Generation of main tensors
 --------------------------
 CalcTensor
     Generic function to create time evolution of the flows.
-DynCom
-    Returns the temporal evolution of a network's dynamic communicability.
 DynFlow
     Pair-wise conditional flows on a network over time for a given input.
 IntrinsicFlow
@@ -54,7 +52,7 @@ import numpy as np
 import numpy.linalg
 import scipy.linalg
 
-__all__ = ['JacobianMOU', 'DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
+__all__ = ['JacobianMOU', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
 
 ## USEFUL FUNCTIONS ##########################################################
@@ -108,7 +106,7 @@ def JacobianMOU(con, tau):
 
 ## GENERATION OF THE MAIN TENSORS #############################################
 def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
-                                                normed=True, case='DynCom'):
+                                                normed=True, case='DynFlow'):
     """Generic function to create time evolution of the flows.
 
     Parameters
@@ -139,7 +137,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
         the number of time steps.
     """
     # 0) SECURITY CHECKS
-    caselist = ['DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
+    caselist = ['DynFlow', 'FullFlow', 'IntrinsicFlow']
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
 
@@ -158,15 +156,6 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
     flow_tensor = np.zeros((nt,N,N), dtype=np.float)
-    if case == 'DynCom':
-        for i_t in range(nt):
-            t = i_t * timestep
-            # Calculate the term for jacdiag without using expm(), to speed up
-            jacdiag_t = np.diag( np.exp(jacdiag * t) )
-            # Calculate the jaccobian at given time
-            jac_t = scipy.linalg.expm(jac * t)
-            # Calculate the dynamic communicability at time t
-            flow_tensor[i_t] = jac_t - jacdiag_t
 
     elif case == 'DynFlow':
         for i_t in range(nt):
@@ -238,41 +227,6 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
 
     return dynflow_tensor
 
-def DynCom(con, tau, tmax=20, timestep=0.1, normed=True):
-    """Returns the temporal evolution of a network's dynamic communicability.
-
-    Parameters
-    ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
-    tau : real valued number, or ndarray of rank-1
-        The decay rate at the nodes. Positive value expected.
-        If a number is given, then the function considers all nodes have same
-        decay rate. Alternatively, an array can be inputed with the decay rate
-        of each node.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
-    timestep : real valued number, positive (optional)
-        Sampling time-step.
-        Warning: Not an integration step, just the desired sampling rate.
-    normed : boolean (optional)
-        If True, normalises the tensor by the scaling factor, to make networks
-        of different size comparable.
-
-    Returns
-    -------
-    dyncom_tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability.
-        A tensor of shape (nt,N,N), where N is the number of nodes and
-        nt = tmax * timestep is the number of time steps.
-    """
-    N = len(con)
-    sigma = np.identity(N, dtype=np.float)
-    dyncom_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
-                    timestep=timestep, normed=normed, case='DynCom')
-
-    return dyncom_tensor
-
 def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     """Returns the flow dissipated through each node over time.
 
@@ -288,7 +242,7 @@ def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     sigma : ndarray of rank-2
         The matrix of Gaussian noise covariances.
     tmax : real valued number, positive (optional)
-        Final time for integration.dyncom
+        Final time for integration.dynflow
     timestep : real valued number, positive (optional)
         Sampling time-step.
         Warning: Not an integration step, just the desired sampling rate.
