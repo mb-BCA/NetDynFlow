@@ -6,6 +6,8 @@ On the other hand, there are some potential sources for confusion in this formal
 
 GORKA: To be honest, I don't even like the word communicability. What the flows quantify is the level of response of a node j to a perturbation on node i, or seen the other way around, the influence of node i over j. So, would it make more sense to call it the activity of j? The causal activity of j?
 
+Another important question: we are internally calling some measures as the "dynamic flow" or "intrinsic flow." But, are we 100% sure those are trully flows, as properly defined in physics? Or are they "accumulated responses" or something like that? We must specify and be precise.
+
 
 - model-based network analysis --> flow-based, diffusion-based, response-based, impulse-based, perturbation-based, ...
 - communicability --> activity, influence, flow, **response**
