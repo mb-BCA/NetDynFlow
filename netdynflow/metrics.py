@@ -57,7 +57,7 @@ def TotalEvolution(tensor):
     ----------
     tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
-        of shape n_nodes x n_nodes x timesteps , where n_nodes is the number of nodes.
+        of shape timesteps x N x N is expected, where N is the number of nodes.
 
     Returns
     -------
@@ -68,10 +68,10 @@ def TotalEvolution(tensor):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     tensor_shape = np.shape(tensor)
-    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
+    if (len(tensor_shape) != 3) or (tensor_shape[1] != tensor_shape[2]):
         raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
 
-    totaldyncom = tensor.sum(axis=(0,1))
+    totaldyncom = tensor.sum(axis=(1,2))
 
     return totaldyncom
 
@@ -83,7 +83,7 @@ def Diversity(tensor):
     ----------
     tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability or flow. A
-        tensor of shape N x N x timesteps, where N is the number of nodes.
+        tensor of shape timesteps x N x N, where N is the number of nodes.
 
     Returns
     -------
@@ -93,14 +93,14 @@ def Diversity(tensor):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     tensor_shape = np.shape(tensor)
-    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
-        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
+    if (len(tensor_shape) != 3) or (tensor_shape[1] != tensor_shape[2]):
+        raise ValueError("Input array not aligned. A 3D array of shape (nt x N x N) expected.")
 
-    n_t = tensor_shape[2]
-    diversity = np.zeros(n_t, np.float)
+    nt = tensor_shape[0]
+    diversity = np.zeros(nt, np.float)
     diversity[0] = np.nan
-    for i_t in range(1,n_t):
-        temp = tensor[:,:,i_t]
+    for i_t in range(1,nt):
+        temp = tensor[i_t]
         diversity[i_t] = temp.std() / temp.mean()
 
     return diversity
@@ -113,7 +113,7 @@ def NodeFlows(tensor, selfloops=False):
     ----------
     tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
-        of shape n_nodes x n_nodes x timesteps, where n_nodes is the number of nodes.
+        of shapetimesteps x N x N, where N is the number of nodes.
     selfloops : boolean
         If False (default), the function only returns the in-flows into a node
         due to perturbations on other  nodes, and the out-flows that the node
@@ -133,24 +133,24 @@ def NodeFlows(tensor, selfloops=False):
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
     arr_shape = np.shape(tensor)
-    if (len(arr_shape) != 3) or (arr_shape[0] != arr_shape[1]):
-        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
+    if (len(arr_shape) != 3) or (arr_shape[1] != arr_shape[2]):
+        raise ValueError("Input array not aligned. A 3D array of shape (nt x N x N) expected.")
 
     # 1) Calculate the input and output node properties
     # When self-loops shall be included to the temporal nodel flows
     if selfloops:
-        inflows = tensor.sum(axis=0)
-        outflows = tensor.sum(axis=1)
+        inflows = tensor.sum(axis=1)
+        outflows = tensor.sum(axis=2)
 
     # Excluding the self-flows a node due to inital perturbation on itself.
     else:
-        N,N, nt = arr_shape
-        inflows = np.zeros((N,nt), np.float)
-        outflows = np.zeros((N,nt), np.float)
+        nt, N,N = arr_shape
+        inflows = np.zeros((nt,N), np.float)
+        outflows = np.zeros((nt,N), np.float)
         for i in range(N):
-            tempdiag = tensor[i,i]
-            inflows[i] = tensor[:,i,:].sum(axis=0) - tempdiag
-            outflows[i] = tensor[i,:,:].sum(axis=0) - tempdiag
+            tempdiags = tensor[:,i,i]
+            inflows[:,i]  = tensor[:,:,i].sum(axis=1) - tempdiags
+            outflows[:,i] = tensor[:,i,:].sum(axis=1) - tempdiags
 
     node_flows = ( inflows, outflows )
     return node_flows
@@ -164,9 +164,9 @@ def Time2Peak(arr, timestep):
 
     The function calculates the time-to-peak for either links, nodes or the
     whole network, depending on the input array given.
-    - If 'arr' is the (N x N x nt) tensor flow, the output 'ttp_arr' will be
+    - If 'arr' is the (nt x N x N) tensor flow, the output 'ttp_arr' will be
     an N x N matrix with the ttp between every pair of nodes.
-    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
     'ttp_arr' will be an array of length N, containing the ttp of the N nodes.
     - If 'arr' is the array of length nt for the network flow, then 'ttp_arr'
     will be a scalar, indicating the time at which whole-network flow peaks.
@@ -174,8 +174,8 @@ def Time2Peak(arr, timestep):
     Parameters
     ----------
     arr : ndarray of adaptive shape, according to the case.
-        Temporal evolution of the flow. An array of shape N X N X nt for the
-        flow of the links, an array of shape N X nt for the flow of the nodes,
+        Temporal evolution of the flow. An array of shape nt x N x N for the
+        flow of the links, an array of shape nt x N for the flow of the nodes,
         or a 1-dimensional array of length nt for the network flow.
     timestep : real valued number.
         Sampling time-step. This has to be the time-step employed to simulate
@@ -195,11 +195,11 @@ def Time2Peak(arr, timestep):
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
     if arr_shape==3:
-        if arr_shape[0] != arr_shape[1]:
-            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
+        if arr_shape[1] != arr_shape[2]:
+            raise ValueError("Input array not aligned. For 3D arrays shape (nt x N x N) is expected.")
 
     # 1) Get the indices at which every element peaks
-    ttp_arr = arr.argmax(axis=-1)
+    ttp_arr = arr.argmax(axis=0)
     # 2) Convert into simulation time
     ttp_arr = timestep * ttp_arr
 
@@ -218,9 +218,9 @@ def Time2Decay(arr, dt, fraction=0.99):
     The function calculates the time-to-decay either for all pair-wise
     interactions, for the nodes or for the whole network, depending on the
     input array given.
-    - If 'arr' is the (N x N x nt) tensor flow, the output 'ttd_arr' will be
+    - If 'arr' is the (nt x N x N) tensor flow, the output 'ttd_arr' will be
     an N x N matrix with the ttd between every pair of nodes.
-    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
     'ttd_arr' will be an array of length N, containing the ttd of the N nodes.
     - If 'arr' is the array of length nt for the network flow, then 'ttd_arr'
     will be a scalar, indicating the time at which whole-network flow peaks.
@@ -228,8 +228,8 @@ def Time2Decay(arr, dt, fraction=0.99):
     Parameters
     ----------
     arr : ndarray of adaptive shape, according to the case.
-        Temporal evolution of the flow. An array of shape N X N X nt for the
-        flow of the links, an array of shape N X nt for the flow of the nodes,
+        Temporal evolution of the flow. An array of shape nt x N x N for the
+        flow of the links, an array of shape nt x N for the flow of the nodes,
         or a 1-dimensional array of length nt for the network flow.
     timestep : real valued number.
         Sampling time-step. This has to be the time-step employed to simulate
@@ -255,24 +255,24 @@ def Time2Decay(arr, dt, fraction=0.99):
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
     if arr_shape==3:
-        if arr_shape[0] != arr_shape[1]:
-            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
+        if arr_shape[1] != arr_shape[2]:
+            raise ValueError("Input array not aligned. For 3D arrays shape (nt x N x N) is expected.")
 
     # 1) Set the level of cummulative flow to be reached over time
-    targetcflow = fraction * arr.sum(axis=-1)
+    targetcflow = fraction * arr.sum(axis=0)
 
     # 2) Calculate the time the flow(s) need to decay
     # Initialise the output array, to return the final time-point
     ## NOTE: This version iterates over all the times. This is not necessary.
     ## We could start from the end and save plenty of iterations.
-    ttd_shape = arr_shape[:-1]
-    nsteps = arr_shape[-1]
+    ttd_shape = arr_shape[1:]
+    nsteps = arr_shape[0]
     ttd_arr = nsteps * np.ones(ttd_shape, np.int)
 
     # Iterate over time, calculating the cumulative flow(s)
-    cflow = arr[...,0].copy()
+    cflow = arr[0].copy()
     for t in range(1,nsteps):
-        cflow += arr[...,t]
+        cflow += arr[t]
         ttd_arr = np.where(cflow < targetcflow, t, ttd_arr)
 
     # Finally, convert the indices into integration time
@@ -295,9 +295,9 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
     The function calculates the area-under-the-curve for the flow curves over
     time. It does so for all pair-wise interactions, for the nodes or for
     the whole network, depending on the input array given.
-    - If 'arr' is the (N x N x nt) flow tensor, the output 'totalflow' will be
+    - If 'arr' is the (nt x N x N) flow tensor, the output 'totalflow' will be
     an N x N matrix with the ttp between every pair of nodes.
-    - If 'arr' is the (N x nt) temporal flow of the N nodes, the output
+    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
     'totalflow' will be an array of length N, containing the ttp of the N nodes.
     - If 'arr' is the array of length nt for the network flow, then 'totalflow'
     will be a scalar, indicating the time at which whole-network flow peaks.
@@ -305,7 +305,7 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
     Parameters
     ----------
     arr : ndarray of adaptive shape, according to the case.
-        Temporal evolution of the flow. An array of shape N X N X nt for the
+        Temporal evolution of the flow. An array of shape nt x N x N for the
         flow of the links, an array of shape N X nt for the flow of the nodes,
         or a 1-dimensional array of length nt for the network flow.
     timestep : real valued number.
@@ -334,8 +334,8 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
     if arr_shape==3:
-        if arr_shape[0] != arr_shape[1]:
-            raise ValueError("Input array not aligned. For 3D arrays shape (N x N x nt) is expected.")
+        if arr_shape[1] != arr_shape[2]:
+            raise ValueError("Input array not aligned. For 3D arrays shape (nt x N x N) is expected.")
 
     # Validate options for optional variable 'timespan'
     caselist = ['full', 'raise', 'decay']
@@ -345,19 +345,19 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
     # 1) DO THE CALCULATIONS
     # 1.1) Easy case. Integrate area-under-the-curve along whole time interval
     if timespan == 'full':
-        totalflow = timestep * arr.sum(axis=-1)
+        totalflow = timestep * arr.sum(axis=0)
 
     # 1.2) Integrate area-under-the-curve until or from the peak time
     else:
         # Get the temporal indices at which the flow(s) peak
-        tpidx = arr.argmax(axis=-1)
+        tpidx = arr.argmax(axis=0)
 
         # Initialise the final array
-        tf_shape = arr_shape[:-1]
+        tf_shape = arr_shape[1:]
         totalflow = np.zeros(tf_shape, np.float)
 
         # Sum the flow(s) over time, only in the desired time interval
-        nsteps = arr_shape[-1]
+        nsteps = arr_shape[0]
         for t in range(1,nsteps):
             # Check if the flow at time t should be accounted for or ignored
             if timespan == 'raise':
@@ -365,7 +365,7 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
             elif timespan == 'decay':
                 counts = np.where(t < tpidx, False, True)
             # Sum the flow at the given iteration, if accepted
-            totalflow += (counts * arr[...,t])
+            totalflow += (counts * arr[t])
 
         # Finally, normalise the integral by the time-step
         totalflow *= timestep

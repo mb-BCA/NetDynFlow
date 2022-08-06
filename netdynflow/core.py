@@ -84,22 +84,22 @@ def JacobianMOU(con, tau):
         raise ValueError( "'con' not a square matrix." )
     # Make sure con is a ndarray of dtype = np.float64
     con = np.array(con, dtype=np.float)
-    n_nodes = con_shape[0]
+    N = con_shape[0]
 
     # Check the tau constant, in case it is a 1-dimensional array-like.
     tau_shape = np.shape(tau)
     if tau_shape:
         if len(tau_shape) != 1:
             raise ValueError( "tau must be either a float or a 1D array." )
-        if tau_shape[0] != n_nodes:
+        if tau_shape[0] != N:
             raise ValueError( "'con' and tau not aligned." )
         # Make sure tau is a ndarray of dytpe = np.float64
         tau = np.array(tau, dtype=np.float)
     else:
-        tau = tau * np.ones(n_nodes, dtype=np.float)
+        tau = tau * np.ones(N, dtype=np.float)
 
     # 1) CALCULATE THE JACOBIAN MATRIX
-    jacdiag = -np.ones(n_nodes, dtype=np.float) / tau
+    jacdiag = -np.ones(N, dtype=np.float) / tau
     jac = np.diag(jacdiag) + con
 
     return jac
@@ -134,7 +134,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     -------
     flow_tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic flow or communicability.
-        A tensor of shape n_nodes x n_nodes x (tmax*timestep), where n_nodes is
+        A tensor of shape (tmax*timestep) x N x N, where N is
         the number of nodes.
     """
     # 0) SECURITY CHECKS
@@ -149,49 +149,49 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     # 1) CALCULATE THE JACOBIAN MATRIX
     jac = JacobianMOU(con, tau)
     jacdiag = np.diagonal(jac)
-    n_nodes = len(jac)
+    N = len(jac)
 
     # 2) CALCULATE THE DYNAMIC FLOW
     # 2.1) Calculate the extrinsic flow over integration time
-    n_t = int(tmax / timestep) + 1
+    nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    flow_tensor = np.zeros((n_nodes,n_nodes,n_t), dtype=np.float)
+    flow_tensor = np.zeros((nt,N,N), dtype=np.float)
     if case == 'DynCom':
-        for i_t in range(n_t):
+        for i_t in range(nt):
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the dynamic communicability at time t
-            flow_tensor[:,:,i_t] = jac_t - jacdiag_t
+            flow_tensor[i_t] = jac_t - jacdiag_t
 
     elif case == 'DynFlow':
-        for i_t in range(n_t):
+        for i_t in range(nt):
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the dynamic communicability at time t
-            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
     elif case == 'IntrinsicFlow':
-        for i_t in range(n_t):
+        for i_t in range(nt):
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the dynamic communicability at time t.
-            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jacdiag_t)
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'FullFlow':
-        for i_t in range(n_t):
+        for i_t in range(nt):
             t = i_t * timestep
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the non-normalised flow at time t.
-            flow_tensor[:,:,i_t] = np.dot( sigma_sqrt, jac_t )
+            flow_tensor[i_t] = np.dot( sigma_sqrt, jac_t )
 
     # 2.2) Normalise by the scaling factor
     if normed:
@@ -229,7 +229,7 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     -------
     dynflow_tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x n_nodes x n_nodes, where n_nodes is the number of nodes.
+        of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
     dynflow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
                     timestep=timestep, normed=normed, case='DynFlow')
@@ -263,8 +263,8 @@ def DynCom(con, tau, tmax=20, timestep=0.1, normed=True):
         Temporal evolution of the network's dynamic communicability. A tensor
         of shape (tmax*timestep) x N x N, where N is the number of nodes.
     """
-    n_nodes = len(con)
-    sigma = np.identity(n_nodes, dtype=np.float)
+    N = len(con)
+    sigma = np.identity(N, dtype=np.float)
     dyncom_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
                     timestep=timestep, normed=normed, case='DynCom')
 
