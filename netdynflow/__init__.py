@@ -9,23 +9,21 @@
 #     http://www.apache.org/licenses/LICENSE-2.0
 
 """
-Network Dynamic Communicability and Flow
-========================================
+Network Analysis Based on Perturbation-Induced Flows
+====================================================
 
-A package to study complex networks based on the temporal evolution of their
-Dynamic Communicability and Flow.
+A package to study complex networks based on the spatio-temporal propagation of
+flows due to external perturbations.
 Compatible with Python 3.X.
 
 - 'Dynamic Flow' characterises the transient network response over time, as the
 network dynamics relax towards their resting-state after a pulse perturbation
 (either independent or correlated Gaussian noise) has been applied to selected
 nodes.
-- 'Dynamic Communicability' corresponds to the special case where uncorrelated
-Gaussian noise has initially been applied to all nodes.
 
 NetDynFlow treats networks as connectivity matrices, represented as 2D NumPy
 arrays. Given (i) a connectivity matrix and (ii) a an input covariance matrix,
-dynamic communicability and flow return a set of matrices (a 3D NumPy array),
+conditional pair-wise network flows return a set of matrices (a 3D NumPy array),
 each describing the state of the state of the pairwise node interations at
 at consecutive time points.
 
@@ -45,10 +43,10 @@ Available functions
 The package is organised into two modules:
 
 core.py
-    Functions to obtain the temporal evolution of dynamic communicability and flow.
+    Functions to calculate spatio-temporal evolution of conditiona network flows.
 metrics.py
-    Network descriptors to analyse the temporal evolution of the dynamic
-    communicability and flow.
+    Descriptors to analyse the spatio-temporal evolution of perturbation-induced
+    flows in a network.
 
 To see the list of all functions available use the standard help in an
 interactive session, for both modules ::
@@ -63,7 +61,7 @@ interactive session, for both modules ::
     `ndf.func()` instead of `ndf.core.func()` or `ndf.metrics.func()`. Details
     of each function is also found using the usual help, e.g.,
 
-	>>> ndf.DynCom?
+	>>> ndf.DynFlow?
 	>>> ndf.Diversity?
 
 In an IPython interactive session, or in a Jupyter Notebook, typing ``netdynflow``
@@ -85,20 +83,22 @@ although this is not necessary for loading the package: ::
 
     >>> import netdynflow as ndf
     >>> ...
-    >>> dyncom = ndf.DynCom(net, tau)
+    >>> sigma = np.identity(N)
+    >>> dynflow = ndf.DynFlow(net, tau, sigma)
 
-We did not have to call ``netdynflow.core.DynCom()``. In the case of an absolute
+We did not have to call ``netdynflow.core.DynFlow()``. In the case of an absolute
 import (using an asterisk ``*``) all functions in *core.py* are imported to the
 base namespace:  ::
 
     >>> from netdynflow import *
     >>> ...
-    >>> dyncom = DynCom(net, tau)
+    >>> sigma = np.identity(N)
+    >>> dynflow = DynFlow(net, tau, sigma)
 
 Getting started
 ***************
 Create a simple weighted network of N = 4 nodes (a numpy array) and compute its
-dynamic communicability over time: ::
+dynamic flow over time: ::
 
 >>> net = np.array(((0, 1.2, 0, 0),
                     (0, 0, 1.1, 0),
@@ -106,24 +106,25 @@ dynamic communicability over time: ::
                     (1.0, 0, 0, 0)), float)
 
 >>> tau = 0.8
->>> dyncom = ndf.DynCom(net, tau, tmax=15, timestep=0.01)
+>>> sigma = np.identity(N)  # Matrix of initial perturbations
+>>> dynflow = ndf.DynFlow(net, tau, sigma, tmax=15, timestep=0.01)
 
-The resulting variable ``dyncom`` is an array of rank-3 with dimensions
-(N x N x (tmax / tstep)) containing tmax / tstep = 1500 matrices of size 4 x 4,
-each describing the state of the network at a given time step.
+The resulting variable ``dynflow`` is an array of rank-3 with dimensions
+(nt,N,N) where nt = (tmax / tstep) containing nt = 1500 matrices of size 4 x 4,
+each describing the pair-wise flows in the network over time.
 
     **NOTE**:
     NetDynFlow employs the convention in graph theory that rows of the
     connectivity matrix encode the outputs of the node. That is, `net[i,j] = 1`
     implies that the node in row ``i`` projects over the node in column ``j``.
 
-Now we calculate the *total communicability* and the ``diversity`` of the
-network over time as:  ::
+Now we calculate the *total flow* and the ``diversity`` of the network over
+time as:  ::
 
->>> totalcom = ndf.TotalEvolution(dyncom)
->>> divers = ndf.Diversity(dyncom)
+>>> totalflow = ndf.TotalEvolution(dynflow)
+>>> divers = ndf.Diversity(dynflow)
 
-``totalcom`` and ``divers`` are two arrays of length (tmax / tsteps) = 1500.
+``totalflow`` and ``divers`` are two arrays of length (tmax / tsteps) = 1500.
 
 
 License
