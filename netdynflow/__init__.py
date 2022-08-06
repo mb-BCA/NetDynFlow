@@ -14,7 +14,7 @@ Network Dynamic Communicability and Flow
 
 A package to study complex networks based on the temporal evolution of their
 Dynamic Communicability and Flow.
-Compatible with Python 2.7 and 3.X.
+Compatible with Python 3.X.
 
 - 'Dynamic Flow' characterises the transient network response over time, as the
 network dynamics relax towards their resting-state after a pulse perturbation

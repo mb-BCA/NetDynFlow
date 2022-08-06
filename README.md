@@ -60,9 +60,6 @@ Do not forget the "." at the end which means "*look for the setup.py file in the
 This will install the package, that is, the content in the folder *netdynflow/*. Other files (Examples/, README.md, LICENSE.txt, etc.) need to be downloaded manually, if wanted.
 
 
-> **NOTE:** If you are using Python 2 and Python 3 environments, *NetDynFlow* needs to be installed in each of the environments.
-
-
 
 ### HOW TO USE *NetDynFlow*
 
