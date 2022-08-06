@@ -1,3 +1,13 @@
+This branch is deprecated. The only reason we keep it for now is to conserve the notebooks in the Examples folder. 
+
+TODO:
+
+1. Once the version 2.0.0 of the library is ready, move the examples to the v2 branch.
+2. Clean and update the examples in the v2 branch.
+3. Delete this branch.
+
+
+-----------------------
 # NetDynFlow
 
 A package to study complex networks based on the temporal evolution of their Dynamic Communicability and Flow.
