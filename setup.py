@@ -8,7 +8,7 @@ with open("requirements.txt") as reqs_file:
 
 setup(
     name =  'netdynflow',
-    description = 'A package to study complex networks based on their temporal Dynamic Communicability and Flow.',
+    description = 'A package to study complex networks based on temporal flow propagations.',
     url =  'https://github.com/gorkazl/NetDynFlow',
     version =  '2.0.0.dev1',
     license =  'Apache License 2.0',

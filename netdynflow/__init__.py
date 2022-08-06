@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2021, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+# Copyright (c) 2022, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 # <galib@Zamora-Lopez.xyz>
 #
 # Released under the Apache License, Version 2.0 (the "License");
@@ -128,7 +128,7 @@ network over time as:  ::
 
 License
 -------
-Copyright (c) 2021, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+Copyright (c) 2022, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 
 Released under the Apache License, Version 2.0 (the "License");
 you may not use this software except in compliance with the License.
@@ -152,10 +152,10 @@ from . import metrics_test
 
 __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
 __email__ = "galib@Zamora-Lopez.xyz"
-__copyright__ = "Copyright 2021"
+__copyright__ = "Copyright 2022"
 __license__ = "Apache License version 2.0"
 __version__ = "2.0.0.dev1"
-__update__ = "26/06/2021"
+__update__ = "06/08/2022"
 
 
 #
