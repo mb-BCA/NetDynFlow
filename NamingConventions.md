@@ -2,11 +2,21 @@
 
 Naming of objects and metrics needs to be corrected in the DynCom / DynFlow formalism. We should give a detailed though of what each object and metric truly measure from the point of view of the dynamic propagation system that represents. But, we should neither forget the practicality, that many graph/network concepts are well stablished and are familiar to the community. So, as an extension of graph/network analysis tools, we should take this on account and provide names that are familiar to the end users.
 
-On the other hand, there are some potential sources for confusion in this formalism when it comes to naming things. One such reason is the fact that we have both flow, intrinsic flow, extrinsic flow and dynamic communicability. With the two latter being the same, indeed. Another source is the fact that some of the metrics are characterised at three different levels: network, node and link. So, this needs to be explicit in the naming. For example, we could say (network communicability, node communicability and link communicability).
+#### Communicability, response, flows, … ??
 
-GORKA: To be honest, I don't even like the word communicability. What the flows quantify is the level of response of a node j to a perturbation on node i, or seen the other way around, the influence of node i over j. So, would it make more sense to call it the activity of j? The causal activity of j?
+A very important question we must address is to give proper names for what we are measuring. Following the inertia in the literature we started calling this "*dynamic communicability*" but this was the moment we (and nobody) trully understood what is the physical interpretation of communicability. Which now we know, is not communication. Internally, we are calling some measures as the "dynamic flow" or "intrinsic flow." But, are we 100% sure those are trully flows, as properly defined in physics? Or are they "accumulated responses" or something like that? We must specify and be precise.
 
-Another important question: we are internally calling some measures as the "dynamic flow" or "intrinsic flow." But, are we 100% sure those are trully flows, as properly defined in physics? Or are they "accumulated responses" or something like that? We must specify and be precise.
+We need to clarify this for good because otherwise we will create more confusion when our goal is to create a framework that clarifies things. One issue is that extrinsic flow and dynamic communicability are the same. We can't have two names for the same. To be honest, I never liked the word communicability. It means nothing. It is pretty much a generic name to refer to something unspecific that is not well explained. So, **we have to remove the word "communicability" from our formalism and code**.
+
+When thinking how to name the measures, and how to explain the formalism, it should be important to realise the distinction between concepts and actual physical quantities. I mean:
+
+- Diffusion, response, perturbation, etc. are concepts, they are not physical measures. That is, they do not have a physical unit per se. So, we can use those terms with care for descriptive purposes but we should not name actual metrics using those concepts.
+- For example, *flow* **is** a physical quantity. So, we should use "flow" to name the measures and the tensors. BUT we must make sure that those actually reflect flows, as properly defined by physics. 
+
+Another possible source of confusion is that some of the metrics are characterised at three different levels: network, node and link. So, this needs to be explicit in the naming. For example, we could say (network flow, node flow and link flow).
+
+
+##### List of names to take care of, and decide upon
 
 
 - model-based network analysis --> flow-based, diffusion-based, response-based, impulse-based, perturbation-based, ...
