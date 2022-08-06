@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2021, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+# Copyright (c) 2022, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 # <galib@Zamora-Lopez.xyz>
 #
 # Released under the Apache License, Version 2.0 (the "License");
@@ -75,6 +75,36 @@ def TotalEvolution(tensor):
 
     return totaldyncom
 
+def Diversity(tensor):
+    """
+    Temporal diversity for a networks dynamic communicability or flow.
+
+    Parameters
+    ----------
+    tensor : ndarray of rank-3
+        Temporal evolution of the network's dynamic communicability or flow. A
+        tensor of shape N x N x timesteps, where N is the number of nodes.
+
+    Returns
+    -------
+    diversity : ndarray of rank-1
+        Array containing temporal evolution of the diversity.
+    """
+    # 0) SECURITY CHECKS
+    # Check the input tensor has the correct 3D shape
+    tensor_shape = np.shape(tensor)
+    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
+        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
+
+    n_t = tensor_shape[2]
+    diversity = np.zeros(n_t, np.float)
+    diversity[0] = np.nan
+    for i_t in range(1,n_t):
+        temp = tensor[:,:,i_t]
+        diversity[i_t] = temp.std() / temp.mean()
+
+    return diversity
+
 def NodeFlows(tensor, selfloops=False):
     """
     Temporal evolution of the input and output flows of each node.
@@ -118,41 +148,12 @@ def NodeFlows(tensor, selfloops=False):
         inflows = np.zeros((N,nt), np.float)
         outflows = np.zeros((N,nt), np.float)
         for i in range(N):
-            inflows[i] = tensor[:,i,:].sum(axis=0) - tensor[i,i]
-            outflows[i] = tensor[i,:,:].sum(axis=0) - tensor[i,i]
+            tempdiag = tensor[i,i]
+            inflows[i] = tensor[:,i,:].sum(axis=0) - tempdiag
+            outflows[i] = tensor[i,:,:].sum(axis=0) - tempdiag
 
     node_flows = ( inflows, outflows )
     return node_flows
-
-def Diversity(tensor):
-    """
-    Temporal diversity for a networks dynamic communicability or flow.
-
-    Parameters
-    ----------
-    tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability or flow. A
-        tensor of shape N x N x timesteps, where N is the number of nodes.
-
-    Returns
-    -------
-    diversity : ndarray of rank-1
-        Array containing temporal evolution of the diversity.
-    """
-    # 0) SECURITY CHECKS
-    # Check the input tensor has the correct 3D shape
-    tensor_shape = np.shape(tensor)
-    if (len(tensor_shape) != 3) or (tensor_shape[0] != tensor_shape[1]):
-        raise ValueError("Input array not aligned. A 3D array of shape (N x N x nt) expected.")
-
-    n_t = tensor_shape[2]
-    diversity = np.zeros(n_t, np.float)
-    diversity[0] = np.nan
-    for i_t in range(1,n_t):
-        temp = tensor[:,:,i_t]
-        diversity[i_t] = temp.std() / temp.mean()
-
-    return diversity
 
 def Time2Peak(arr, timestep):
     """
@@ -188,8 +189,9 @@ def Time2Peak(arr, timestep):
     """
 
     # 0) SECURITY CHECKS
-    ## TODO: Write a check to verify the curve has a real peak and decays after
+    ## TODO1: Write a check to verify the curve has a real peak and decays after
     ## the peak. Raise a warning that maybe longer simulation is needed.
+    ## TODO2: Silent nodes (non-perturbed) should return inf instead of zero.
     # Check correct shape, in case input is the 3D array for the pair-wise flow
     arr_shape = np.shape(arr)
     if arr_shape==3:
