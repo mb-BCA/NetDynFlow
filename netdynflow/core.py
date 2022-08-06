@@ -13,11 +13,12 @@ Calculation of dynamic communicability and flow
 ===============================================
 
 This module contains functions to calculate the temporal evolution of the
-dynamic communicability and flow. Networks are treated as connectevity
-matrices, represented as 2D NumPy arrays. Given a connectivity matrix, dynamic
-communicability and flow return a series of matrices arranged into a tensor
-(a numpy array of rank-3), each describing the state of the network at
-consecutive time points.
+pair-wise, conditional flows in a network due to perturbations. The location
+and intensity of the initial perturbation can be defined by the users.
+Networks are treated as connectivity matrices, represented as 2D NumPy arrays.
+Given a connectivity matrix, the subsequent flows are returned as a series of
+matrices arranged into a tensor (a numpy array of rank-3), each describing the
+state of the network at consecutive time points.
 
 Helper functions
 ----------------
@@ -27,13 +28,13 @@ JacobianMOU
 Generation of main tensors
 --------------------------
 CalcTensor
-    Generic function to create time evolution of communicability or flow.
+    Generic function to create time evolution of the flows.
 DynCom
     Returns the temporal evolution of a network's dynamic communicability.
 DynFlow
-    Returns the extrinsinc flow on a network over time for a given input.
+    Pair-wise conditional flows on a network over time for a given input.
 IntrinsicFlow
-    Returns the intrinsic flow on a network over time for a given input.
+    Returns the flow dissipated through each node over time.
 FullFlow
     Returns the complete flow on a network over time for a given input.
 
@@ -65,7 +66,7 @@ def JacobianMOU(con, tau):
     con : ndarray of rank-2
         The adjacency matrix of the network.
     tau : real valued number, or ndarray of rank-1
-        The decay rate at the nodes. Positive value expected.
+        The decay rate at the nodes. Positive values expected.
         If a number is given, then the function considers all nodes have same
         decay rate. Alternatively, an array can be inputed with the decay rate
         of each node.
@@ -108,7 +109,7 @@ def JacobianMOU(con, tau):
 ## GENERATION OF THE MAIN TENSORS #############################################
 def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
                                                 normed=True, case='DynCom'):
-    """Generic function to create time evolution of communicability or flow.
+    """Generic function to create time evolution of the flows.
 
     Parameters
     ----------
@@ -133,9 +134,9 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     Returns
     -------
     flow_tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic flow or communicability.
-        A tensor of shape (tmax*timestep) x N x N, where N is
-        the number of nodes.
+        Temporal evolution of the network's dynamic flow. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
+        the number of time steps.
     """
     # 0) SECURITY CHECKS
     caselist = ['DynCom', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
@@ -203,7 +204,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 
 ## Wrappers using CalcTensor() ___________________________________________
 def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
-    """Returns the extrinsinc flow on a network over time for a given input.
+    """Pair-wise conditional flows on a network over time for a given input.
 
     Parameters
     ----------
@@ -228,8 +229,9 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     Returns
     -------
     dynflow_tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+        Temporal evolution of the network's pair-wise conditional flows.
+        A tensor of shape (nt,N,N), where N is the number of nodes and
+        nt = tmax * timestep is the number of time steps.
     """
     dynflow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
                     timestep=timestep, normed=normed, case='DynFlow')
@@ -260,8 +262,9 @@ def DynCom(con, tau, tmax=20, timestep=0.1, normed=True):
     Returns
     -------
     dyncom_tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+        Temporal evolution of the network's dynamic communicability.
+        A tensor of shape (nt,N,N), where N is the number of nodes and
+        nt = tmax * timestep is the number of time steps.
     """
     N = len(con)
     sigma = np.identity(N, dtype=np.float)
@@ -271,7 +274,7 @@ def DynCom(con, tau, tmax=20, timestep=0.1, normed=True):
     return dyncom_tensor
 
 def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
-    """Returns the intrinsic flow on a network over time for a given input.
+    """Returns the flow dissipated through each node over time.
 
     Parameters
     ----------
@@ -296,8 +299,9 @@ def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     Returns
     -------
     flow_tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape (tmax*timestep) x N x N, where N is the number of nodes.
+        Temporal evolution of disspation through the nodes of the network.
+        A tensor of shape (nt,N,N), where N is the number of nodes and
+        nt = tmax * timestep is the number of time steps.
     """
     flow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
                     timestep=timestep, normed=normed, case='IntrinsicFlow')
@@ -329,8 +333,9 @@ def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
     Returns
     -------
     flow_tensor : ndarray of rank-3
-        Temporal evolution of the network's flow. A tensor of shape
-        (tmax*timestep) x N x N, where N is the number of nodes.
+        Temporal evolution of the network's full-flow. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
+        the number of time steps.
     """
     flow_tensor = CalcTensor(con, tau, sigma, tmax=tmax,
                             timestep=timestep, normed=normed, case='FullFlow')

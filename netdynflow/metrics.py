@@ -12,23 +12,24 @@
 Analysis of dynamic communicability and flow
 ============================================
 
-Functions to analyse the dynamic communicability or flow "tensors", which have
-been previously calculated from a given network.
+Functions to analyse the spatio-temporal evolution of perturbation-induced
+flows in a network. The data shall be given in the form of 3D tensor arrays
+previously calculated from a given network. See 'core.py' module.
 
 Metrics derived from the tensors
 --------------------------------
 TotalEvolution
-    Calculates total communicability or flow over time for a network.
+    Calculates total amount of flow through the network at every time point.
 NodeFlows
-    Temporal evolution of the input and output flows of each node.
+    Temporal evolution of the input and output flows for each node.
 Diversity
-    Temporal diversity for a networks dynamic communicability or flow.
+    Inhomogeneity of the pair-wise flows in a networks over time.
 TimeToPeak
-    The time links, nodes or networks need to reach peak flow.
+    The time for links, nodes or networks need to reach maximal flow.
 TimeToDecay
-    The time pair-wise interaction, nodes or networks need to decay back to zero.
+    The time need for pair-wise, nodes or networks flows to decay.
 AreaUnderCurve
-    The total accumulated flow of pair-wise, nodes or network flow over time.
+    Total amount of flow across time for pair-wise, node or whole-network.
 
 
 Reference and Citation
@@ -51,18 +52,19 @@ import scipy.linalg
 ## METRICS EXTRACTED FROM THE FLOW AND COMMUNICABILITY TENSORS ################
 def TotalEvolution(tensor):
     """
-    Calculates total communicability or flow over time for a network.
+    Calculates total amount of flow through the network at every time point.
 
     Parameters
     ----------
     tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability. A tensor
-        of shape timesteps x N x N is expected, where N is the number of nodes.
+        Spatio-temporal evolution of the network's flow. A tensor of shape
+        (nt,N,N) is expected, where N is the number of nodes and nt is the
+        number of time steps.
 
     Returns
     -------
     totaldyncom : ndarray of rank-1
-        Array containing temporal evolution of the total communicability.
+        Array containing temporal evolution of the total network flow.
     """
 
     # 0) SECURITY CHECKS
@@ -77,18 +79,19 @@ def TotalEvolution(tensor):
 
 def Diversity(tensor):
     """
-    Temporal diversity for a networks dynamic communicability or flow.
+    Inhomogeneity of the pair-wise flows in a networks over time.
 
     Parameters
     ----------
     tensor : ndarray of rank-3
-        Temporal evolution of the network's dynamic communicability or flow. A
-        tensor of shape timesteps x N x N, where N is the number of nodes.
+        Temporal evolution of the network's dynamic communicability or flow.
+        A tensor of shape (nt,N,N) is expected, where N is the number of nodes
+        and nt is the number of time steps.
 
     Returns
     -------
     diversity : ndarray of rank-1
-        Array containing temporal evolution of the diversity.
+        Array containing temporal evolution of the pair-wise flow inhomogeneities.
     """
     # 0) SECURITY CHECKS
     # Check the input tensor has the correct 3D shape
@@ -107,13 +110,14 @@ def Diversity(tensor):
 
 def NodeFlows(tensor, selfloops=False):
     """
-    Temporal evolution of the input and output flows of each node.
+    Temporal evolution of the input and output flows for each node.
 
     Parameters
     ----------
     tensor : ndarray of rank-3
         Temporal evolution of the network's dynamic communicability. A tensor
-        of shapetimesteps x N x N, where N is the number of nodes.
+        of shape (nt,N,N) is expected, where N is the number of nodes and nt is
+        the number of time steps.
     selfloops : boolean
         If False (default), the function only returns the in-flows into a node
         due to perturbations on other  nodes, and the out-flows that the node
@@ -123,11 +127,11 @@ def NodeFlows(tensor, selfloops=False):
 
     Returns
     -------
-    nodedyncom : tuple.
-        Temporal evolution of the communicability or flow for all nodes.
-        The result consists of a tuple of two ndarrays of shape (N x nt)
-        each. The first is for the sum of communicability interactions over all
-        inputs of each node and the second for its outputs.
+    nodeflows : tuple.
+        Temporal evolution of the input and output flows for all nodes.
+        The result consists of a tuple containing two ndarrays of shape (nt,N).
+        The first is for the input flows into a node over time and the second
+        array for the output flows.
     """
 
     # 0) SECURITY CHECKS
@@ -152,31 +156,31 @@ def NodeFlows(tensor, selfloops=False):
             inflows[:,i]  = tensor[:,:,i].sum(axis=1) - tempdiags
             outflows[:,i] = tensor[:,i,:].sum(axis=1) - tempdiags
 
-    node_flows = ( inflows, outflows )
-    return node_flows
+    nodeflows = ( inflows, outflows )
+    return nodeflows
 
 def Time2Peak(arr, timestep):
     """
-    The time links, nodes or networks need to reach peak flow.
+    The time for links, nodes or networks need to reach maximal flow.
 
     In terms of binary graphs, time-to-peak is equivalen to the pathlength
     between two nodes.
 
     The function calculates the time-to-peak for either links, nodes or the
     whole network, depending on the input array given.
-    - If 'arr' is the (nt x N x N) tensor flow, the output 'ttp_arr' will be
-    an N x N matrix with the ttp between every pair of nodes.
-    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
-    'ttp_arr' will be an array of length N, containing the ttp of the N nodes.
-    - If 'arr' is the array of length nt for the network flow, then 'ttp_arr'
-    will be a scalar, indicating the time at which whole-network flow peaks.
+    - If 'arr' is a (nt,N,N) flow tensor, the output 'ttp_arr' will be an
+    (N,N) matrix with the ttp between every pair of nodes.
+    - If 'arr' is a (nt,N) temporal flow of the N nodes, the output 'ttp_arr'
+    will be an array of length N, containing the ttp of all N nodes.
+    - If 'arr' is an array of length nt (total network flow over time), 'ttp_arr'
+    will be a scalar, indicating the time at which the whole-network flow peaks.
 
     Parameters
     ----------
     arr : ndarray of adaptive shape, according to the case.
-        Temporal evolution of the flow. An array of shape nt x N x N for the
-        flow of the links, an array of shape nt x N for the flow of the nodes,
-        or a 1-dimensional array of length nt for the network flow.
+        Temporal evolution of the flow. An array of optional shapes. Either
+        (nt,N,N) for the pair-wise flows, shape (nt,N,N) for the in- or output
+        flows of nodes, or a 1D array of length nt for the network flow.
     timestep : real valued number.
         Sampling time-step. This has to be the time-step employed to simulate
         the temporal evolution encoded in 'arr'.
@@ -207,7 +211,7 @@ def Time2Peak(arr, timestep):
 
 def Time2Decay(arr, dt, fraction=0.99):
     """
-    The time pair-wise interaction, nodes or networks need to decay back to zero.
+    The time need for pair-wise, nodes or networks flows to decay.
 
     Strictly speaking, this function measures the time that the cumulative
     flow (area under the curve) needs to reach x% of the total (cumulative)
@@ -218,19 +222,19 @@ def Time2Decay(arr, dt, fraction=0.99):
     The function calculates the time-to-decay either for all pair-wise
     interactions, for the nodes or for the whole network, depending on the
     input array given.
-    - If 'arr' is the (nt x N x N) tensor flow, the output 'ttd_arr' will be
-    an N x N matrix with the ttd between every pair of nodes.
-    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
-    'ttd_arr' will be an array of length N, containing the ttd of the N nodes.
-    - If 'arr' is the array of length nt for the network flow, then 'ttd_arr'
-    will be a scalar, indicating the time at which whole-network flow peaks.
+    - If 'arr' is a (nt,N,N) flow tensor, the output 'ttd_arr' will be an
+    (N,N) matrix with the ttd between every pair of nodes.
+    - If 'arr' is a (nt,N) temporal flow of the N nodes, the output 'ttd_arr'
+    will be an array of length N, containing the ttd of all N nodes.
+    - If 'arr' is an array of length nt (total network flow over time), 'ttd_arr'
+    will be a scalar, indicating the time at which the whole-network flow decays.
 
     Parameters
     ----------
     arr : ndarray of adaptive shape, according to the case.
-        Temporal evolution of the flow. An array of shape nt x N x N for the
-        flow of the links, an array of shape nt x N for the flow of the nodes,
-        or a 1-dimensional array of length nt for the network flow.
+        Temporal evolution of the flow. An array of optional shapes. Either
+        (nt,N,N) for the pair-wise flows, shape (nt,N,N) for the in- or output
+        flows of nodes, or a 1D array of length nt for the network flow.
     timestep : real valued number.
         Sampling time-step. This has to be the time-step employed to simulate
         the temporal evolution encoded in 'arr'.
@@ -242,8 +246,8 @@ def Time2Decay(arr, dt, fraction=0.99):
     Returns
     -------
     ttd_arr : ndarray of variable rank
-        The time(s) needed by the flows of pair-wise interactions, nodes or
-        the network to decay back to zero. Output shape depends on input.
+        The time(s) taken for the flows through links, nodes or the network to
+        decay. Output shape depends on input.
     """
 
     # 0) SECURITY CHECKS
@@ -280,7 +284,7 @@ def Time2Decay(arr, dt, fraction=0.99):
 
     return ttd_arr
 
-def AreaUnderCurve(arr, timestep, timespan='full'):
+def AreaUnderCurve(arr, timestep, timespan='alltime'):
     ## TODO: The name of this function needs good thinking. Different options
     ## are possible depending on the interpretation and naming of other
     ## variables or metrics.
@@ -290,17 +294,19 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
     ## temporal evolution of a flow, response curve or dyncom ... which are
     ## indeed the same !! Maybe.
     """
-    The total accumulated flow of pair-wise, nodes or network flow over time.
+    Total amount of flow across time for pair-wise, node or whole-network.
 
     The function calculates the area-under-the-curve for the flow curves over
     time. It does so for all pair-wise interactions, for the nodes or for
     the whole network, depending on the input array given.
-    - If 'arr' is the (nt x N x N) flow tensor, the output 'totalflow' will be
-    an N x N matrix with the ttp between every pair of nodes.
-    - If 'arr' is the (nt x N) temporal flow of the N nodes, the output
-    'totalflow' will be an array of length N, containing the ttp of the N nodes.
-    - If 'arr' is the array of length nt for the network flow, then 'totalflow'
-    will be a scalar, indicating the time at which whole-network flow peaks.
+    - If 'arr' is a (nt,N,N) flow tensor, the output 'totalflow' will be an
+    (N,N) matrix with the accumulated flow passed between every pair of nodes.
+    - If 'arr' is a (nt,N) temporal flow of the N nodes, the output 'totalflow'
+    will be an array of length N, containing the accumulated flow passed through
+    all the nodes.
+    - If 'arr' is an array of length nt (total network flow over time), 'totalflow'
+    will be a scalar, indicating the total amount of flow that went through the
+    whole network.
 
     Parameters
     ----------
@@ -312,7 +318,7 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
         Sampling time-step. This has to be the time-step employed to simulate
         the temporal evolution encoded in 'arr'.
     timespan : string, optional
-        If timespan = 'full', the function calculates the area under the
+        If timespan = 'alltime', the function calculates the area under the
         curve(s) along the whole time span (nt) that 'arr' contains, from t0 = 0
         to tfinal.
         If timespan = 'raise', the function calculates the area-under-the-
@@ -338,13 +344,13 @@ def AreaUnderCurve(arr, timestep, timespan='full'):
             raise ValueError("Input array not aligned. For 3D arrays shape (nt x N x N) is expected.")
 
     # Validate options for optional variable 'timespan'
-    caselist = ['full', 'raise', 'decay']
+    caselist = ['alltime', 'raise', 'decay']
     if timespan not in caselist :
         raise ValueError( "Optional parameter 'timespan' requires one of the following values: %s" %str(caselist) )
 
     # 1) DO THE CALCULATIONS
     # 1.1) Easy case. Integrate area-under-the-curve along whole time interval
-    if timespan == 'full':
+    if timespan == 'alltime':
         totalflow = timestep * arr.sum(axis=0)
 
     # 1.2) Integrate area-under-the-curve until or from the peak time

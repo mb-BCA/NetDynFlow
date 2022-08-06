@@ -17,7 +17,8 @@ binary or weighted networks.
 
 Generation and randomization of binary graphs
 ---------------------------------------------
-These functions are all imported from the GAlib library (https://github.com/gorkazl/pyGAlib)
+These functions are all imported from the GAlib library
+(https://github.com/gorkazl/pyGAlib)
 Please see doctsring of module "galib.models" for a list of functions.  ::
 
     >>> import galib
