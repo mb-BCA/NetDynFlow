@@ -106,7 +106,7 @@ def JacobianMOU(con, tau):
 
 ## GENERATION OF THE MAIN TENSORS #############################################
 def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
-                                                normed=True, case='DynFlow'):
+                                                normed=False, case='DynFlow'):
     """Generic function to create time evolution of the flows.
 
     Parameters
@@ -192,7 +192,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 
 
 ## Wrappers using CalcTensor() ___________________________________________
-def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
+def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Pair-wise conditional flows on a network over time for a given input.
 
     Parameters
@@ -227,7 +227,7 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
 
     return dynflow_tensor
 
-def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
+def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Returns the flow dissipated through each node over time.
 
     Parameters
@@ -262,7 +262,7 @@ def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
 
     return flow_tensor
 
-def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=True):
+def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Returns the complete flow on a network over time for a given input.
 
     Parameters
