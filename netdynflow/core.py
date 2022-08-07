@@ -157,7 +157,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 
     flow_tensor = np.zeros((nt,N,N), dtype=np.float)
 
-    elif case == 'DynFlow':
+    if case == 'DynFlow':
         for i_t in range(nt):
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
