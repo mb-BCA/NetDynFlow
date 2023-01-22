@@ -185,7 +185,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 
     # 2.2) Normalise by the scaling factor
     if normed:
-        scaling_factor = (-1./jacdiag).sum()
+        scaling_factor = np.abs(1./jacdiag).sum()
         flow_tensor /= scaling_factor
 
     return flow_tensor
