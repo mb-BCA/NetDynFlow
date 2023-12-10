@@ -29,7 +29,16 @@ Another possible source of confusion is that some of the metrics are characteris
 - If network/node/link communicability are the temporal evolution of the network/node/link, then how to call the sum over time (integral) of those quantities?
 
 
+##### Internal naming for the canonical models, to decide upon
 
+These names are relevant because they are the "short names" we should use to "tag" the functions that are specific for each model. And, for simplicity and coherence, these should be the same names we will use in v3 for the class attribute that specifies the canonical model.
+
+- Discrete cascade
+- Random walks
+- (Random walks with teleportation)
+- Continuous cascade
+- Leaky cascade
+- Continuous diffusion (simple diffusion)
 
 
 ## Internal variable naming conventions

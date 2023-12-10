@@ -1,7 +1,16 @@
-# TO-DO list for version v2 of NetDynFlow
+# Roadmap for version v2 of NetDynFlow
+
+Given that in the new Perspective Article in which we call for a model-based network analyses using different canonical models, we need a complete new roadmap for v2 of the library. We need to provide two new things:
+
+1. The functions to calculate the response matrices (tensors) for the different canonical models, regardless of whether they are time-discrete or time-continuous.
+2. A new module with the code to simulate and get the temporal solutions **x**(t) for the nodes for each canonical model.
+
+I guess that version v2 of *NetDynFlow* is going to be transparent from the point of view of the code but will have several redundant functions with similar names, specially those to generate the response matrices under the different models. I would like to make v3 an object-oriented library which would reduce the number of "functions" and names the users need to remember. That is, only one function (with different options, of course) to generate the tensor of the response matrices, and another function to compute the solutions **x**(t). Those two functions will then be called specifying the canonical model and the particular parameters if the model needs that. E.g., the decay time-constant for the leaky-cascade (MOU).
 
 
 ### Pending
+
+- Include a new module named `simulations.py` containing the code to simulate the network under the different canonical models and return the temporal solutions **x**(t) for the nodes.
 
 - Add functions to the *metrics.py* module:
 	- To return the peak flows. I know, it is really trivial to compute but… we need to give these things in functions for beginer users. 
@@ -14,6 +23,7 @@
 	- Weighted ring lattice, with stronger weights between neighbouring nodes (model by Muldoon et al.)
 
 - Think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. Stablish a coherent naming system that is general enough, precise and will survive over time to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals. 
+- Think very carefully the **naming of the canonical models**. There are historical implications here but … One should be pragmatical and besides, those names should really be informative for the user. I would prefer that than using names only because in one field or in another, the models are called in some way. See the *NamingConventions.md* file for proposals.
 - Function `Time2Peak()` should return `np.inf` for those pair-wise elements when there is no input in a node. Now, it returns zeros in those cases.
 - Same of function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
 
