@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2022, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+# Copyright (c) 2023, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 # <galib@Zamora-Lopez.xyz>
 #
 # Released under the Apache License, Version 2.0 (the "License");
@@ -106,7 +106,7 @@ def tNN2NNt(tensor):
 
 def Reciprocity(adjmatrix):
     """Computes the fraction of reciprocal links to total number of links.
-    
+
     Both weighted and unweighted input matrices are permitted. Weights
     are ignored for the calculation.
     Parameters
