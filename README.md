@@ -1,20 +1,3 @@
-*Version-2 development branch. Remove everything above the dashed line before the v2 release.*
-
-The package needs a good shake before release of the next version. We must do the following:
-
-- **Add functions** (*metrics.py* module) to estimate further metrics out of the dynamic communicability tensor, from the full-flow or the intrinsic flow.
-- We must think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. We need to take on account that some of the metrics are conceptually the same but applied to the whole network, to the individual nodes or to each link. So, this can become very confusing. Such renaming must be stablished and coherent with the naming we will use in any further paper as well, where this formalism is applied. We have to do some forward thinking now, to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals. 
-- We must include a module for **generating networks and surrogates**. For generating graphs we could call pyGAlib but the new weighted net surrogates must be added from scratch. Importing pyGAlib needs to be discussed. On the positive side it avoids copy/pasting functions thus, if errors, they only need to be corrected once (in pyGAlib). But not sure if we want to add another dependency to the NetDynFlow library.
-- Personally (Gorka) I don't like the idea of inventing objects for anything that is just a numerical array. In practice, we don't need anything else than NumPy objects for that. However, we have to acknowledge that in this case, the dynamic flow (or communicability) is a parametric object. In order to calculate it from a connectivity matrix we must specify: a time-constant, a temporal resolution and the duration. So … the flow tensors may need to become objects in order to live with those attributes attached to them. Maybe the connectivity matrix should also be part of the object.
-
-
-
-
-------------------------------------------------------------
-
-
-
-
 
 # NetDynFlow
 
