@@ -7,6 +7,8 @@ Given that in the new Perspective Article in which we call for a model-based net
 
 I guess that version v2 of *NetDynFlow* is going to be transparent from the point of view of the code but will have several redundant functions with similar names, specially those to generate the response matrices under the different models. I would like to make v3 an object-oriented library which would reduce the number of "functions" and names the users need to remember. That is, only one function (with different options, of course) to generate the tensor of the response matrices, and another function to compute the solutions **x**(t). Those two functions will then be called specifying the canonical model and the particular parameters if the model needs that. E.g., the decay time-constant for the leaky-cascade (MOU).
 
+In any case, v2 has to be a clean and coherent library such that the transition to an object-oriented version should be as smooth as possible.
+
 
 ### Pending
 
