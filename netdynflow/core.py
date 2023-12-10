@@ -55,6 +55,12 @@ import scipy.linalg
 __all__ = ['JacobianMOU', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
 
+# REORGANISE THIS MODULE TO GENERATE THE RESPONSE MATRICES FOR THE FIVE
+# CANONICAL MODELS. FOR THE LEAKY-CASCADE AND THE CONTINUOUS DIFFUSION,
+# PROVIDE THE OPTIONS TO COMPUTE THE GREEN'S FUNCTION, THE ONE REGRESSING THE
+# DIAGONALS, AND THE RESPONSES ONLY DUE TO THE DIAGONALS. FIND PROPER NAMES
+# FOR THOSE CASES.
+
 ## USEFUL FUNCTIONS ##########################################################
 def JacobianMOU(con, tau):
     """Calculates the Jacobian matrix for the MOU dynamic system.
