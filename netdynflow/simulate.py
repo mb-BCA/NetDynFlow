@@ -66,7 +66,6 @@ def DiscreteCascade(con, X0=None, tmax=10):
     Xt : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
         Xt[0] corresponds to the initial conditions.
-
     """
 
     # 0) SECURITY CHECKS
@@ -80,14 +79,14 @@ def DiscreteCascade(con, X0=None, tmax=10):
     conT = np.copy(con.T, order='C')
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float64)
+    if X0 is None: X0 = np.ones(N, dtype=np.float64)
 
     # Initialise the output array and enter the initial conditions
-    Xt = zeros((tmax,N), np.float64)
+    Xt = np.zeros((tmax+1,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tmax):
+    for t in range(1,tmax+1):
         Xt[t] = np.dot(conT, Xt[t-1])
 
     return Xt
@@ -134,23 +133,22 @@ def RandomWalk(con, X0=None, tmax=10):
     # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float64)
+    if X0 is None: X0 = np.ones(N, dtype=np.float64)
 
     # Initialise the output array and enter the initial conditions
-    Xt = zeros((tmax,N), np.float64)
+    Xt = np.zeros((tmax+1,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tmax):
+    for t in range(1,tmax+1):
         Xt[t] = np.dot(Tmat, Xt[t-1])
 
     return Xt
 
 
-
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
 
-def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
+def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, noise=None):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
 
     It solves the differential equation for the simplest possible linear
@@ -173,8 +171,6 @@ def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise
         The duration of the simulation in arbitrary time units.
     timestep : scalar (optional)
         The time-step of the numerical integration.
-    gcoupling : scalar (optional)
-        A global coupling strength scaling the weights of all the links.
     noise : ndarray of rank-2 (optional)
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
@@ -196,7 +192,7 @@ def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise
     conT = np.copy(con.T, order='C')
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float64)
+    if X0 is None: X0 = np.ones(N, dtype=np.float64)
 
     # Initialise the output array
     nsteps = int(tmax / timestep) + 1
@@ -204,93 +200,24 @@ def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise
     # Enter the initial conditions
     Xdot[0] = X0
 
-    # 2) RUN THE SIMULATION
-    for t in range(1,nsteps):
-        Xpre = Xdot[t-1]
-
-        # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre) #- ink * Xpre
-
-        # Integration step
-        Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
-
-    return Xdot
-
-def ContinuousDiffusion(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
-    """Simulates the temporal evolution of the nodes for the continuous diffusion.
-
-    It solves the differential equation for the simplest possible linear
-    dynamical (propagation) linear model of nodes coupled via diffusive coupling,
-    with no local dynamics at the nodes.
-
-        xdot_i = A_ij * (x_i - x_j) .
-
-    In matrix form, this equation is represented as:
-
-        xdot(t) = -D x(t) + A x(t)  =  L x(t),
-
-    where D is the diagonal matrix with the input degrees ink_i in the diagonal
-    and L = -D + A is the graph Laplacian matrix.
-
-    Parameters
-    ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
-    X0 : ndarray of rank-1. (optional)
-        The initial conditions for the simulation. A vector of length N nodes.
-        If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tmax : scalar (optional)
-        The duration of the simulation in arbitrary time units.
-    timestep : scalar (optional)
-        The time-step of the numerical integration.
-    gcoupling : scalar (optional)
-        A global coupling strength scaling the weights of all the links.
-    noise : ndarray of rank-2 (optional)
-        A precomputed noisy input to all nodes. Optional parameter. Not needed
-        for the applications of the model-based network analysis. Left optional
-        for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tmax*timestep) + 1 and N is the number of nodes.
-
-    Returns
-    -------
-    Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tmax*timestep) + 1.
-    """
-    # 0) SECURITY CHECKS
-    # To be done ...
-
-    # 1) PREPARE FOR THE SIMULATION
-    # Infos about the network
-    N = len(con)
-    conT = np.copy(con.T, order='C').astype(np.float64)
-    ink = conT.sum(axis=1)
-    # Lmat = - ink * np.identity(N, dtype=np.float64) + conT
-
-    # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float64)
-
-    # Initialise the output array
-    nsteps = int(tmax / timestep) + 1
-    Xdot = np.zeros((nsteps, N), np.float64, order='C')
-    # Enter the initial conditions
-    Xdot[0] = X0
+    # Set the noise array to default, if not given by the user
+    if noise is None: noise = np.zeros((nsteps,N), dtype=np.float64)
 
     # 2) RUN THE SIMULATION
     for t in range(1,nsteps):
         Xpre = Xdot[t-1]
 
         # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre) - ink * Xpre
-        # xcoup = np.dot(Lmat, Xpre)
+        xcoup = np.dot(conT,Xpre)
 
         # Integration step
-        Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
+        # Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * xcoup + noise[t]
 
     return Xdot
 
-def LeakyCascade(con, taus, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
-    """Simulates the temporal evolution of the nodes for the continuous cascade.
+def LeakyCascade(con, taus, X0=None, tmax=10, timestep=0.01, noise=None):
+    """Simulates temporal evolution of the nodes for the leaky-cascade model.
 
     It solves the differential equation for the linear propagation model of
     nodes coupled via connectivity matrix A, and a dissipative term leaking
@@ -317,8 +244,6 @@ def LeakyCascade(con, taus, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
         The duration of the simulation in arbitrary time units.
     timestep : scalar (optional)
         The time-step of the numerical integration.
-    gcoupling : scalar (optional)
-        A global coupling strength scaling the weights of all the links.
     noise : ndarray of rank-2 (optional)
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
@@ -339,11 +264,13 @@ def LeakyCascade(con, taus, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
     # Infos about the network
     N = len(con)
     conT = np.copy(con.T, order='C')
-    # ink = conT.sum(axis=1)
+
+    # Set the leakage time-constants to default, if not given by the user
+    if taus is None: taus = np.ones(N, dtype=np.float64)
     alphas = 1./taus
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float64)
+    if X0 is None: X0 = np.ones(N, dtype=np.float64)
 
     # Initialise the output array
     nsteps = int(tmax / timestep) + 1
@@ -351,18 +278,95 @@ def LeakyCascade(con, taus, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
     # Enter the initial conditions
     Xdot[0] = X0
 
+    # Set the noise array to default, if not given by the user
+    if noise is None: noise = np.zeros((nsteps,N), dtype=np.float64)
+
     # 2) RUN THE SIMULATION
     for t in range(1,nsteps):
         Xpre = Xdot[t-1]
 
         # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre) #- ink * Xpre
+        xcoup = np.dot(conT,Xpre)
 
         # Integration step
-        Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + xcoup ) + noise[t]
 
     return Xdot
 
+def ContinuousDiffusion(con, X0=None, tmax=10, timestep=0.01, noise=None):
+    """Simulates the temporal evolution of the nodes for the continuous diffusion.
+
+    It solves the differential equation for the simplest possible linear
+    dynamical (propagation) linear model of nodes coupled via diffusive coupling,
+    with no local dynamics at the nodes.
+
+        xdot_i = A_ij * (x_i - x_j) .
+
+    In matrix form, this equation is represented as:
+
+        xdot(t) = -D x(t) + A x(t)  =  L x(t),
+
+    where D is the diagonal matrix with the input degrees ink_i in the diagonal
+    and L = -D + A is the graph Laplacian matrix.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    X0 : ndarray of rank-1. (optional)
+        The initial conditions for the simulation. A vector of length N nodes.
+        If none given, simulation will start with unit input to all nodes, X0 = 1.
+    tmax : scalar (optional)
+        The duration of the simulation in arbitrary time units.
+    timestep : scalar (optional)
+        The time-step of the numerical integration.
+    noise : ndarray of rank-2 (optional)
+        A precomputed noisy input to all nodes. Optional parameter. Not needed
+        for the applications of the model-based network analysis. Left optional
+        for general purposes. If given, 'noise' shall be a numpy array of shape
+        (nsteps, N), where nsteps = int(tmax*timestep) + 1 and N is the number of nodes.
+
+    Returns
+    -------
+    Xdot : ndarray of rank-2
+        Time-courses of the N nodes. A numpy array of shape (nsteps, N),
+        where nsteps = int(tmax*timestep) + 1.
+    """
+    # 0) SECURITY CHECKS
+    # To be done ...
+
+    # 1) PREPARE FOR THE SIMULATION
+    # Infos about the network
+    N = len(con)
+    conT = np.copy(con.T, order='C')
+    ink = conT.sum(axis=1)
+    # Lmat = - ink * np.identity(N, dtype=np.float64) + conT
+
+    # Set the initial conditions to default, if not given by the user
+    if X0 is None: X0 = np.ones(N, dtype=np.float64)
+
+    # Initialise the output array
+    nsteps = int(tmax / timestep) + 1
+    Xdot = np.zeros((nsteps, N), np.float64, order='C')
+    # Enter the initial conditions
+    Xdot[0] = X0
+
+    # Set the noise array to default, if not given by the user
+    if noise is None: noise = np.zeros((nsteps,N), dtype=np.float64)
+
+    # 2) RUN THE SIMULATION
+    for t in range(1,nsteps):
+        Xpre = Xdot[t-1]
+
+        # Calculate the input to nodes due to couplings
+        xcoup = np.dot(conT,Xpre) - ink * Xpre
+        # xcoup = np.dot(Lmat, Xpre)
+
+        # Integration step
+        # Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * xcoup + noise[t]
+
+    return Xdot
 
 
 
