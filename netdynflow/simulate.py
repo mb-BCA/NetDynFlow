@@ -41,7 +41,7 @@ import numpy as np
 
 ## DISCRETE-TIME CANONICAL MODELS #############################################
 
-def DiscreteCascade(con, X0=None, tfinal=10):
+def DiscreteCascade(con, X0=None, tmax=10):
     """Simulates temporal evolution of the nodes for the discrete cascade.
 
     It returns the time-series of the nodes for the discrete cascade model
@@ -58,20 +58,20 @@ def DiscreteCascade(con, X0=None, tfinal=10):
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tfinal : integer. (optional)
+    tmax : integer. (optional)
         The duration of the simulation in arbitrary time units.
 
     Returns
     -------
     Xt : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (tfinal+1, N).
+        Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
         Xt[0] corresponds to the initial conditions.
 
     """
 
     # 0) SECURITY CHECKS
     # To be done ...
-    # Make sure tfinal is an integer, or convert to it.
+    # Make sure tmax is an integer, or convert to it.
     # Make sure X0 is 1D, if given by the user.
 
     # 1) PREPARE FOR THE SIMULATION
@@ -80,19 +80,19 @@ def DiscreteCascade(con, X0=None, tfinal=10):
     conT = np.copy(con.T, order='C')
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float)
+    if not X0: X0 = np.ones(n, dtype=np.float64)
 
     # Initialise the output array and enter the initial conditions
-    Xt = zeros((tmax,N), np.float)
+    Xt = zeros((tmax,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tfinal):
+    for t in range(1,tmax):
         Xt[t] = np.dot(conT, Xt[t-1])
 
     return Xt
 
-def RandomWalk(con, X0=None, tfinal=10):
+def RandomWalk(con, X0=None, tmax=10):
     """Simulates temporal evolution of the nodes for the random walks.
 
     It returns the time-series of the nodes for the discrete cascade model
@@ -111,20 +111,20 @@ def RandomWalk(con, X0=None, tfinal=10):
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tfinal : integer. (optional)
+    tmax : integer. (optional)
         The duration of the simulation in arbitrary time units.
 
     Returns
     -------
     Xt : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (tfinal+1, N).
+        Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
         Xt[0] corresponds to the initial conditions.
 
     """
 
     # 0) SECURITY CHECKS
     # To be done ...
-    # Make sure tfinal is an integer, or convert to it.
+    # Make sure tmax is an integer, or convert to it.
     # Make sure X0 is 1D, if given by the user.
 
     # 1) PREPARE FOR THE SIMULATION
@@ -134,14 +134,14 @@ def RandomWalk(con, X0=None, tfinal=10):
     # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float)
+    if not X0: X0 = np.ones(n, dtype=np.float64)
 
     # Initialise the output array and enter the initial conditions
-    Xt = zeros((tmax,N), np.float)
+    Xt = zeros((tmax,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tfinal):
+    for t in range(1,tmax):
         Xt[t] = np.dot(Tmat, Xt[t-1])
 
     return Xt
@@ -150,7 +150,7 @@ def RandomWalk(con, X0=None, tfinal=10):
 
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
 
-def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
+def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
 
     It solves the differential equation for the simplest possible linear
@@ -169,9 +169,9 @@ def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=Non
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tfinal : scalar (optional)
+    tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
-    dt : scalar (optional)
+    timestep : scalar (optional)
         The time-step of the numerical integration.
     gcoupling : scalar (optional)
         A global coupling strength scaling the weights of all the links.
@@ -179,13 +179,13 @@ def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=Non
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tfinal*dt+1) and N is the number of nodes.
+        (nsteps, N), where nsteps = int(tmax*timestep+1) and N is the number of nodes.
 
     Returns
     -------
     Xdot : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tfinal*dt) + 1.
+        where nsteps = int(tmax*timestep) + 1.
     """
     # 0) SECURITY CHECKS
     # To be done ...
@@ -196,11 +196,11 @@ def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=Non
     conT = np.copy(con.T, order='C')
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float)
+    if not X0: X0 = np.ones(n, dtype=np.float64)
 
     # Initialise the output array
-    nsteps = int(tfinal / dt) + 1
-    Xdot = np.zeros((nsteps, N), np.float, order='C')
+    nsteps = int(tmax / timestep) + 1
+    Xdot = np.zeros((nsteps, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
 
@@ -212,11 +212,11 @@ def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=Non
         xcoup = np.dot(conT,Xpre) #- ink * Xpre
 
         # Integration step
-        Xdot[t] = Xpre + dt * ( gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
 
     return Xdot
 
-def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
+def ContinuousDiffusion(con, X0=None, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
     """Simulates the temporal evolution of the nodes for the continuous diffusion.
 
     It solves the differential equation for the simplest possible linear
@@ -239,9 +239,9 @@ def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=N
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tfinal : scalar (optional)
+    tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
-    dt : scalar (optional)
+    timestep : scalar (optional)
         The time-step of the numerical integration.
     gcoupling : scalar (optional)
         A global coupling strength scaling the weights of all the links.
@@ -249,13 +249,13 @@ def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=N
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tfinal*dt) + 1 and N is the number of nodes.
+        (nsteps, N), where nsteps = int(tmax*timestep) + 1 and N is the number of nodes.
 
     Returns
     -------
     Xdot : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tfinal*dt) + 1.
+        where nsteps = int(tmax*timestep) + 1.
     """
     # 0) SECURITY CHECKS
     # To be done ...
@@ -268,10 +268,10 @@ def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=N
     # Lmat = - ink * np.identity(N, dtype=np.float64) + conT
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float)
+    if not X0: X0 = np.ones(n, dtype=np.float64)
 
     # Initialise the output array
-    nsteps = int(tfinal / dt) + 1
+    nsteps = int(tmax / timestep) + 1
     Xdot = np.zeros((nsteps, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
@@ -285,11 +285,11 @@ def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=N
         # xcoup = np.dot(Lmat, Xpre)
 
         # Integration step
-        Xdot[t] = Xpre + dt * ( gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
 
     return Xdot
 
-def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
+def LeakyCascade(con, taus, tmax=10, timestep=0.01, gcoupling=1.0, noise=None):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
 
     It solves the differential equation for the linear propagation model of
@@ -313,9 +313,9 @@ def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
-    tfinal : scalar (optional)
+    tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
-    dt : scalar (optional)
+    timestep : scalar (optional)
         The time-step of the numerical integration.
     gcoupling : scalar (optional)
         A global coupling strength scaling the weights of all the links.
@@ -323,13 +323,13 @@ def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tfinal*dt+1) and N is the number of nodes.
+        (nsteps, N), where nsteps = int(tmax*timestep+1) and N is the number of nodes.
 
     Returns
     -------
     Xdot : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tfinal*dt) + 1.
+        where nsteps = int(tmax*timestep) + 1.
     """
 
     # 0) SECURITY CHECKS
@@ -343,11 +343,11 @@ def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
     alphas = 1./taus
 
     # Set the initial conditions to default, if not given by the user
-    if not X0: X0 = np.ones(n, dtype=np.float)
+    if not X0: X0 = np.ones(n, dtype=np.float64)
 
     # Initialise the output array
-    nsteps = int(tfinal / dt) + 1
-    Xdot = np.zeros((nsteps, N), np.float, order='C')
+    nsteps = int(tmax / timestep) + 1
+    Xdot = np.zeros((nsteps, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
 
@@ -359,7 +359,7 @@ def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
         xcoup = np.dot(conT,Xpre) #- ink * Xpre
 
         # Integration step
-        Xdot[t] = Xpre + dt * ( -1.0*alphas * Xpre + gcoupling*xcoup ) + noise[t]
+        Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + gcoupling*xcoup ) + noise[t]
 
     return Xdot
 
