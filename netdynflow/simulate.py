@@ -18,35 +18,137 @@ models.
 Discrete-time models
 ---------------------
 DiscreteCascade
-    Simulates the temporal evolution of the nodes for the discrete cascade.
+    Simulates temporal evolution of the nodes for the discrete cascade.
 RandomWalks
-    Simulates the temporal evolution of the nodes for the random walks.
+    Simulates temporal evolution of the nodes for the random walks.
 
 Continuous-time models
 -----------------------
 ContinuousCascade
-    Simulates the temporal evolution of the nodes for the continuous cascade.
+    Simulates temporal evolution of the nodes for the continuous cascade.
 LeakyCascade
-    Simulates the temporal evolution of the nodes for the leaky-cascade model.
+    Simulates temporal evolution of the nodes for the leaky-cascade model.
 ContinuousDiffusion
-    Simulates the temporal evolution of the nodes for the simple diffustion model.
+    Simulates temporal evolution of the nodes for the simple diffustion model.
 
 """
 # Standard libary imports
 
 # Third party packages
 import numpy as np
-# import numpy.linalg
-# import scipy.linalg
 
 
 
-## DISCRETE-TIME MODELS #######################################################
-# Add the missing models here ...
+## DISCRETE-TIME CANONICAL MODELS #############################################
+
+def DiscreteCascade(con, X0=None, tfinal=10):
+    """Simulates temporal evolution of the nodes for the discrete cascade.
+
+    It returns the time-series of the nodes for the discrete cascade model
+
+            x(t+1) = A x(t),
+
+    If A is a positive definite connectivity  matrix, then the solutions
+    xt grow exponentially fast.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    X0 : ndarray of rank-1. (optional)
+        The initial conditions for the simulation. A vector of length N nodes.
+        If none given, simulation will start with unit input to all nodes, X0 = 1.
+    tfinal : integer. (optional)
+        The duration of the simulation in arbitrary time units.
+
+    Returns
+    -------
+    Xt : ndarray of rank-2
+        Time-courses of the N nodes. A numpy array of shape (tfinal+1, N).
+        Xt[0] corresponds to the initial conditions.
+
+    """
+
+    # 0) SECURITY CHECKS
+    # To be done ...
+    # Make sure tfinal is an integer, or convert to it.
+    # Make sure X0 is 1D, if given by the user.
+
+    # 1) PREPARE FOR THE SIMULATION
+    # Infos about the network
+    N = len(con)
+    conT = np.copy(con.T, order='C')
+
+    # Set the initial conditions to default, if not given by the user
+    if not X0: X0 = np.ones(n, dtype=np.float)
+
+    # Initialise the output array and enter the initial conditions
+    Xt = zeros((tmax,N), np.float)
+    Xt[0] = X0
+
+    # 2) RUN THE SIMULATION
+    for t in range(1,tfinal):
+        Xt[t] = np.dot(conT, Xt[t-1])
+
+    return Xt
+
+def RandomWalk(con, X0=None, tfinal=10):
+    """Simulates temporal evolution of the nodes for the random walks.
+
+    It returns the time-series of the nodes for the discrete cascade model
+
+            x(t+1) = T x(t),
+
+    where T is the transition probability matrix. The solutions are computed
+    recursively iterating the equation above. If A is a positive definite
+    connectivity matrix the solutions converge to x_i(inf) values proportional
+    to the input degree of the nodes.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    X0 : ndarray of rank-1. (optional)
+        The initial conditions for the simulation. A vector of length N nodes.
+        If none given, simulation will start with unit input to all nodes, X0 = 1.
+    tfinal : integer. (optional)
+        The duration of the simulation in arbitrary time units.
+
+    Returns
+    -------
+    Xt : ndarray of rank-2
+        Time-courses of the N nodes. A numpy array of shape (tfinal+1, N).
+        Xt[0] corresponds to the initial conditions.
+
+    """
+
+    # 0) SECURITY CHECKS
+    # To be done ...
+    # Make sure tfinal is an integer, or convert to it.
+    # Make sure X0 is 1D, if given by the user.
+
+    # 1) PREPARE FOR THE SIMULATION
+    # Compute the transition probability matrix
+    N = len(con)
+    Tmat = con / con.sum(axis=0)    # Assumes Aij = 1 if i -> j
+    # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
+
+    # Set the initial conditions to default, if not given by the user
+    if not X0: X0 = np.ones(n, dtype=np.float)
+
+    # Initialise the output array and enter the initial conditions
+    Xt = zeros((tmax,N), np.float)
+    Xt[0] = X0
+
+    # 2) RUN THE SIMULATION
+    for t in range(1,tfinal):
+        Xt[t] = np.dot(Tmat, Xt[t-1])
+
+    return Xt
 
 
 
-## CONTINUOUS-TIME MODELS #####################################################
+## CONTINUOUS-TIME CANONICAL MODELS ###########################################
 
 def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
@@ -92,6 +194,9 @@ def ContinuousCascade(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=Non
     # Infos about the network
     N = len(con)
     conT = np.copy(con.T, order='C')
+
+    # Set the initial conditions to default, if not given by the user
+    if not X0: X0 = np.ones(n, dtype=np.float)
 
     # Initialise the output array
     nsteps = int(tfinal / dt) + 1
@@ -161,6 +266,9 @@ def ContinuousDiffusion(con, X0=None, tfinal=10, dt=0.01, gcoupling=1.0, noise=N
     conT = np.copy(con.T, order='C').astype(np.float64)
     ink = conT.sum(axis=1)
     # Lmat = - ink * np.identity(N, dtype=np.float64) + conT
+
+    # Set the initial conditions to default, if not given by the user
+    if not X0: X0 = np.ones(n, dtype=np.float)
 
     # Initialise the output array
     nsteps = int(tfinal / dt) + 1
@@ -233,6 +341,9 @@ def LeakyCascade(con, taus, tfinal=10, dt=0.01, gcoupling=1.0, noise=None):
     conT = np.copy(con.T, order='C')
     # ink = conT.sum(axis=1)
     alphas = 1./taus
+
+    # Set the initial conditions to default, if not given by the user
+    if not X0: X0 = np.ones(n, dtype=np.float)
 
     # Initialise the output array
     nsteps = int(tfinal / dt) + 1
