@@ -12,8 +12,6 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 
 ### Pending
 
-- Include a new module named `simulations.py` containing the code to simulate the network under the different canonical models and return the temporal solutions **x**(t) for the nodes.
-
 - Add functions to the *metrics.py* module:
 	- To return the peak flows. I know, it is really trivial to compute but… we need to give these things in functions for beginer users. 
 	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. If the responses haven't properly decay, the function should return a warning, recommending to run longer simulations.
@@ -27,12 +25,14 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 - Think very carefully the **naming of all the metrics**. Both for the existing metrics and the new ones. Stablish a coherent naming system that is general enough, precise and will survive over time to avoid renaming things in the future again. See the *NamingConventions.md* file for proposals. 
 - Think very carefully the **naming of the canonical models**. There are historical implications here but … One should be pragmatical and besides, those names should really be informative for the user. I would prefer that than using names only because in one field or in another, the models are called in some way. See the *NamingConventions.md* file for proposals.
 - Function `Time2Peak()` should return `np.inf` for those pair-wise elements when there is no input in a node. Now, it returns zeros in those cases.
-- Same of function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
+- Same for function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
+- Add security checks at the beginning of all functions.
 
 
 
 ### Finished
 
+- Include a new module named `simulations.py` containing the code to simulate the network under the different canonical models and return the temporal solutions **x**(t) for the nodes.
 - Add functions to the *metrics.py* module:
 	- Dynamic distance (time-to-peak). For the links, for the nodes and for the whole network. It should be best to write a single function that can return the adequate results either if the NxNxnt tensor with the evolution of the links is given as input, or the Nxnt matrix for the nodes, or the array for the network flow. It requires knowlegde of the temporal span of the simmulation (t0, ffinal) and the time-step dt. That would not be the case if we end transforming everything into objects.
 	- Dynamic distance (time-to-relaxation). This one will be the time it takes to reach 95% or 99% of the area under the curve. Try to write a single function that can handle the array for the link, node and network evolutions at once. It requires knowlegde of the temporal span of the simmulation (t0, ffinal) and the time-step dt.
