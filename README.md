@@ -105,6 +105,12 @@ limitations under the License.
 -------------------------------------------------------------------------------
 ### VERSION HISTORY
 
+##### December 14, 2023
+*core.py* module has been simplified to three practical functions `DynFlow()`, `IntrinsicFlow()` and `ExtrinsicFlow()`. 
+
+New measures added to *metrics.py* module: `Time2Peak()`, `Time2Decay` and `AreaUnderCurve()`. These functions accept either the temporal response matrices of shape (nt,N,N) (e.g., the output of DynFlow), the temporal responses of nodes of shape (nt,N) or the global network response of shape (nt,1). The functions will return a matrix, a vector or an scalar accordingly for each case.
+
+
 ##### April 23, 2021
 Order of axes for the internal tensors has been altered. Originally, the core function `CalcTensor()` would return the temporal evolution of the flows in an array of shape (nt,N,N) where nt = number of time points and N = number of nodes. This was a mistake and for coherence with the C-style array format that is dominant in NumPy, now the output tensors are of shape (N,N,nt).
 

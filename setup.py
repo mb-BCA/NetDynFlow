@@ -10,7 +10,7 @@ setup(
     name =  'netdynflow',
     description = 'A package to study complex networks based on temporal flow propagations.',
     url =  'https://github.com/gorkazl/NetDynFlow',
-    version =  '2.0.0.dev1',
+    version =  '1.0.1',
     license =  'Apache License 2.0',
 
     author =  'Gorka Zamora-Lopez, Matthieu Gilson, Nikos Kouvaris',
@@ -23,7 +23,7 @@ setup(
 
     keywords =  'graph theory, complex networks, network analysis, weighted networks',
     classifiers =  [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
