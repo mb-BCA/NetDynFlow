@@ -52,7 +52,7 @@ import numpy as np
 import numpy.linalg
 import scipy.linalg
 
-__all__ = ['JacobianMOU', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
+# __all__ = ['JacobianMOU', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
 
 # REORGANISE THIS MODULE TO GENERATE THE RESPONSE MATRICES FOR THE FIVE
@@ -87,8 +87,8 @@ def JacobianMOU(con, tau):
         raise ValueError( "'con' not a matrix." )
     if con_shape[0] != con_shape[1]:
         raise ValueError( "'con' not a square matrix." )
-    # Make sure con is a ndarray of dtype = np.float64
-    con = np.array(con, dtype=np.float)
+    # Make sure con is a ndarray of dtype = float64
+    con = np.array(con, dtype=float)
     N = con_shape[0]
 
     # Check the tau constant, in case it is a 1-dimensional array-like.
@@ -98,20 +98,19 @@ def JacobianMOU(con, tau):
             raise ValueError( "tau must be either a float or a 1D array." )
         if tau_shape[0] != N:
             raise ValueError( "'con' and tau not aligned." )
-        # Make sure tau is a ndarray of dytpe = np.float64
-        tau = np.array(tau, dtype=np.float)
+        # Make sure tau is a ndarray of dytpe = float64
+        tau = np.array(tau, dtype=float)
     else:
-        tau = tau * np.ones(N, dtype=np.float)
+        tau = tau * np.ones(N, dtype=float)
 
     # 1) CALCULATE THE JACOBIAN MATRIX
-    jacdiag = -np.ones(N, dtype=np.float) / tau
+    jacdiag = -np.ones(N, dtype=float) / tau
     jac = np.diag(jacdiag) + con
 
     return jac
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
-
 def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the leaky-cascade model.
@@ -201,7 +200,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    resp_matrices = np.zeros((nt,N,N), dtype=np.float)
+    resp_matrices = np.zeros((nt,N,N), dtype=float   )
 
     if case == 'regressed':
         for i_t in range(nt):
@@ -235,7 +234,6 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
         resp_matrices /= scaling_factor
 
     return resp_matrices
-
 
 
 def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
