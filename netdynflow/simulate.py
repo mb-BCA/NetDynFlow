@@ -216,7 +216,7 @@ def ContinuousCascade(con, X0=None, tmax=10, timestep=0.01, noise=None):
 
     return Xdot
 
-def LeakyCascade(con, taus, X0=None, tmax=10, timestep=0.01, noise=None):
+def LeakyCascade(con, tau, X0=None, tmax=10, timestep=0.01, noise=None):
     """Simulates temporal evolution of the nodes for the leaky-cascade model.
 
     It solves the differential equation for the linear propagation model of
@@ -235,7 +235,7 @@ def LeakyCascade(con, taus, X0=None, tmax=10, timestep=0.01, noise=None):
     ----------
     con : ndarray of rank-2
         The adjacency matrix of the network.
-    taus : ndarray of rank-1
+    tau : ndarray of rank-1
         The decay time-constants of the nodes. A 1D array of length N.
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
@@ -266,8 +266,8 @@ def LeakyCascade(con, taus, X0=None, tmax=10, timestep=0.01, noise=None):
     conT = np.copy(con.T, order='C')
 
     # Set the leakage time-constants to default, if not given by the user
-    if taus is None: taus = np.ones(N, dtype=np.float64)
-    alphas = 1./taus
+    if tau is None: tau = np.ones(N, dtype=np.float64)
+    alphas = 1./tau
 
     # Set the initial conditions to default, if not given by the user
     if X0 is None: X0 = np.ones(N, dtype=np.float64)
