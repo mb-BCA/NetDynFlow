@@ -111,6 +111,128 @@ def JacobianMOU(con, tau):
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
+
+def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
+                                                case='regressed', normed=False):
+    """Computes the pair-wise responses over time for the leaky-cascade model.
+
+    NOTE: I WOULD RECOMMEND TO REMOVE THE 'normed' OPTIONAL PARAMETER.
+    IT DOESN'T MAKE MUCH SENSE IN THE FULL OR THE INTRINSIC CASES. BUT I COULD
+    LEAVE IT FOR LEGACY REASONS.
+
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the response matrices Rij(t) encode the temporal
+    response observed at node j due to a short stimulus applied on node i at
+    time t=0.
+    The leaky-cascade is the time-continuous and variable-continuous linear
+    propagation model represented by the following differential equation:
+
+            xdot(t) = - x(t) / tau + A x(t).
+
+    where tau is a leakage time-constant for a dissipation of the flows through
+    the nodes.
+    Given λmax is the largest eigenvalue of the (positive definite) matrix A, then
+    - if tau < tau_max = 1 / λmax, then the leakage term dominates in the long
+    time and the solutions for all nodes converge to zero.
+    - If tau = tau_max, all nodes converge to x_i(t) = 1.
+    - And, if tau < tau_max, then time-courses xdot(t) grow exponentially fast.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    tau : real valued number or ndarray of rank-1
+        The decay time-constants of the nodes. A 1D array of length N.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
+    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+        The covariance matrix of the inputs.
+        - The default value 'sigma=None' applies an input of amplitude 1.0
+        to all nodes.
+        - If a vector v of length N is entered, each node will receive an initial
+        input of amplitude v_i.
+        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
+        employed as the amplitudes of the inputs to node i. Extradiagonal
+        value M_ij will be considered as correlated noise Gaussian noise.
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+    timestep : real valued number, positive (optional)
+        Sampling time-step.
+        Warning - Not an integration step, just the desired sampling rate.
+    normed : boolean (optional)
+        If True, normalises the tensor by a scaling factor, to make networks
+        of different size comparable.
+
+    Returns
+    -------
+    resp_matrices : ndarray of rank-3
+        Temporal evolution of the pair-wise responses. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
+        the number of time steps.
+    """
+    # 0) SECURITY CHECKS
+    N = len(con)
+
+    if sigma is None: sigma = np.identity(N, dtype=float)
+    elif len(np.shape(sigma)) == 1: sigma = sigma * np.identity(N, dtype=float)
+
+    # TODO: Add validation of tau. Constant or vector
+
+    caselist = ['regressed', 'full', 'intrinsic']
+    if case not in caselist:
+        raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
+
+    # 1) CALCULATE THE JACOBIAN MATRIX
+    jac = JacobianMOU(con, tau)
+    jacdiag = np.diagonal(jac)
+
+    # 2) CALCULATE THE DYNAMIC FLOW
+    # 2.1) Calculate the extrinsic flow over integration time
+    nt = int(tmax / timestep) + 1
+    sigma_sqrt = scipy.linalg.sqrtm(sigma)
+
+    resp_matrices = np.zeros((nt,N,N), dtype=np.float)
+
+    if case == 'regressed':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the dynamic communicability at time t
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+
+    elif case == 'intrinsic':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the dynamic communicability at time t.
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jacdiag_t)
+
+    elif case == 'full':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the non-normalised flow at time t.
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t )
+
+    # 2.2) Normalise by the scaling factor
+    if normed:
+        scaling_factor = np.abs(1./jacdiag).sum()
+        resp_matrices /= scaling_factor
+
+    return resp_matrices
+
+
+
 def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
                                                 normed=False, case='DynFlow'):
     """Generic function to create time evolution of the flows.
