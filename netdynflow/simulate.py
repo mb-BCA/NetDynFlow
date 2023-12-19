@@ -237,6 +237,9 @@ def LeakyCascade(con, tau, X0=None, tmax=10, timestep=0.01, noise=None):
         The adjacency matrix of the network.
     tau : ndarray of rank-1
         The decay time-constants of the nodes. A 1D array of length N.
+        If a number is given, then the function considers all nodes have same
+        decay rate. Alternatively, an array can be inputed with the decay rate
+        of each node.
     X0 : ndarray of rank-1. (optional)
         The initial conditions for the simulation. A vector of length N nodes.
         If none given, simulation will start with unit input to all nodes, X0 = 1.
@@ -258,11 +261,24 @@ def LeakyCascade(con, tau, X0=None, tmax=10, timestep=0.01, noise=None):
     """
 
     # 0) SECURITY CHECKS
+    N = len(con)
     # To be done ...
+
+    # Check the tau constant, in case it is a 1-dimensional array-like.
+    tau_shape = np.shape(tau)
+    if tau_shape:
+        if len(tau_shape) != 1:
+            raise ValueError( "tau must be either a float or a 1D array." )
+        if tau_shape[0] != N:
+            raise ValueError( "'con' and tau not aligned." )
+        # Make sure tau is a ndarray of dytpe = np.float64
+        tau = np.array(tau, dtype=np.float)
+    else:
+        tau = tau * np.ones(N, dtype=np.float)
+
 
     # 1) PREPARE FOR THE SIMULATION
     # Infos about the network
-    N = len(con)
     conT = np.copy(con.T, order='C')
 
     # Set the leakage time-constants to default, if not given by the user
