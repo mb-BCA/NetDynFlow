@@ -154,12 +154,17 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
         input of amplitude v_i.
         - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
         employed as the amplitudes of the inputs to node i. Extradiagonal
-        value M_ij will be considered as correlated noise Gaussian noise.
+        value M_ij will be considered as correlated noise Gaussian noise. This
+        case is left for situations in which the system is interpreted as the
+        multivariate Ornstein-Uhlenbeck process, which is the same equation but
+        with additive Gaussian noise applied on the nodes.
     tmax : real valued number, positive (optional)
         Final time for integration.
     timestep : real valued number, positive (optional)
         Sampling time-step.
         Warning - Not an integration step, just the desired sampling rate.
+    case : string (optional)
+        WRITE ME HERE !!
     normed : boolean (optional)
         If True, normalises the tensor by a scaling factor, to make networks
         of different size comparable.
