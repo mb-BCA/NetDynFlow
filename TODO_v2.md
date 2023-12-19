@@ -17,6 +17,13 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. If the responses haven't properly decay, the function should return a warning, recommending to run longer simulations.
 	- We need a function to extract and study the evolution of the self-interactions. That is, the temporal response of a node to a perturbation on itself at time t = 0. This is in a way what Ernesto called "returnability" but we have that over time. Remind that in graphs the clustering coefficient is indeed calculated in this manner, for loops of lenght = 3, but longer loops could be included.
 
+- What to do about the '**sigma**' parameter that we only have for the MOU? It expects a matrix, not a vector of input amplitudes to the nodes. 
+	- A vector is what the readers of the Perspective paper will expect that is needed, but …
+	- The good thing about '**sigma**' is that it allows for correlated inputs between nodes, it is more general than the individual 'kicks' to the nodes.
+	- But … if '**sigma**' stays for the MOU canonical version, then, the R(t) generating functions should also allow the same … but … does a Gaussian noise make sense for, e.g., the discrete cascade and the random walker canonical models? I don't think so. Does it make sense for the continuous cascade and the continuous diffusion models? Probably yes. DOUBLE CHECK WITH MATT.
+	- Possible solution: make `sigma` available for the R(t) generators of the continuous canonical models. BUT, make it an optional parameter with default being `sigma=None`. This default will use the identity matrix = input of unit 1.0 to all nodes. Then, allow `sigma` to be either a vector of size N for the amplitudes of the initial inputs, OR a NxN matrix with the possible correlated noise inputs as well.
+	- If `sigma` will be the matrix of Gaussian noise input amplitudes, Matt said that the norm of the matrix should fulfil some condition. DOUBLE CHECK WITH MATT and add the subsequent security check to the function(s).
+
 - Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
 	- A function to generate random weighted networks of different distributions.
 	- In spatially embedded networks, a function to assign the stronger links to the closest nodes.
