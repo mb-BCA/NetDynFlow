@@ -2,6 +2,7 @@
 
 #### Before merging new version into master:
 
+- Save current master into a branch for legacy.
 - Open a new branch out of dev_v2 --> '**v2-cleanup**'.
 - Clean ____init____.py: 
 	- Remove imports to test modules. 
