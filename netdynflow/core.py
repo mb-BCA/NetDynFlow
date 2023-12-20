@@ -119,6 +119,9 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
     IT DOESN'T MAKE MUCH SENSE IN THE FULL OR THE INTRINSIC CASES. BUT I COULD
     LEAVE IT FOR LEGACY REASONS.
 
+    TODO: Decide a better name. Will depend on how to name the functions for the
+    other canonical models. Try give shorter names.
+
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the response matrices Rij(t) encode the temporal
     response observed at node j due to a short stimulus applied on node i at
@@ -240,6 +243,9 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
                                                 normed=False, case='DynFlow'):
     """Generic function to create time evolution of the flows.
 
+    DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
+    REMOVE BEFORE RELEASE OF v2.0.0
+
     Parameters
     ----------
     con : ndarray of rank-2
@@ -326,6 +332,9 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Pair-wise conditional flows on a network over time for a given input.
 
+    DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
+    REMOVE BEFORE RELEASE OF v2.0.0
+
     Parameters
     ----------
     con : ndarray of rank-2
@@ -361,6 +370,9 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
 def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Returns the flow dissipated through each node over time.
 
+    DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
+    REMOVE BEFORE RELEASE OF v2.0.0
+
     Parameters
     ----------
     con : ndarray of rank-2
@@ -395,6 +407,9 @@ def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
 
 def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
     """Returns the complete flow on a network over time for a given input.
+
+    DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
+    REMOVE BEFORE RELEASE OF v2.0.0
 
     Parameters
     ----------
