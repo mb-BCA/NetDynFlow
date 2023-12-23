@@ -111,7 +111,98 @@ def JacobianMOU(con, tau):
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
-def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
+
+# TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
+
+def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
+    """Computes the pair-wise responses over time for the leaky-cascade model.
+
+    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
+    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
+    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
+
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the response matrices Rij(t) encode the temporal
+    response observed at node j due to a short stimulus applied on node i at
+    time t=0.
+    The continuous-cascade is the simplest linear propagation model for
+    CONTINUOUS VARIABLE and CONTINUOUS TIME in a network. It is represented by
+    the following differential equation:
+
+            xdot(t) = A x(t) .
+
+    This system is NON-CONSERVATIVE and leads to DIVERGENT dynamics. If all
+    entries of A are positive, e.g, A is a binary graph, the both the solutions
+    x_i(t) and the responses Rij(t) rapidly explode.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+        The covariance matrix of the inputs.
+        - The default value 'sigma=None' applies an input of amplitude 1.0
+        to all nodes.
+        - If a vector v of length N is entered, each node will receive an initial
+        input of amplitude v_i.
+        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
+        employed as the amplitudes of the inputs to node i. Extradiagonal
+        value M_ij will be considered as correlated noise Gaussian noise. This
+        case is left available for situations in which the system is interpreted
+        as the multivariate Ornstein-Uhlenbeck process, which is the same
+        equation but with additive Gaussian noise applied on the nodes.
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+    timestep : real valued number, positive (optional)
+        Sampling time-step.
+        Warning - Not an integration step, just the desired sampling rate.
+
+    Returns
+    -------
+    resp_matrices : ndarray of rank-3
+        Temporal evolution of the pair-wise responses. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
+        the number of time steps. The first time point contains the matrix of
+        inputs (sigma).
+    """
+    # 0) SECURITY CHECKS
+    N = len(con)
+    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
+    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+    else: sigma_matrix = sigma
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
+
+    # 1) CALCULATE THE DYNAMIC FLOW
+    # 1.1) Define some helper parameters
+    nt = int(tmax / timestep) + 1
+    # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
+    sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
+
+    # Define the tensor where responses will be stored
+    resp_matrices = np.zeros((nt,N,N), dtype=float )
+
+    # 1.2) Compute the pair-wise response matrices over time
+    if sigma is None:
+        # Do the calculation a bit faster for the default unit inputs
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the Green's function at time t.
+            resp_matrices[i_t] = scipy.linalg.expm(con * t)
+    else:
+        # Do the calculation if other inputs are entered besides the default
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the Green's function at time t.
+            greens_t = scipy.linalg.expm(con * t)
+            # Calculate the pair-wise responses at time t.
+            resp_matrices[i_t] = np.dot(sigma_sqrt, greens_t)
+
+    return resp_matrices
+
+def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the leaky-cascade model.
 
@@ -119,8 +210,8 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
     IT DOESN'T MAKE MUCH SENSE IN THE FULL OR THE INTRINSIC CASES. BUT I COULD
     LEAVE IT FOR LEGACY REASONS.
 
-    TODO: Decide a better name. Will depend on how to name the functions for the
-    other canonical models. Try give shorter names.
+    TODO: DECIDE A BETTER NAME. WILL DEPEND ON HOW TO NAME THE FUNCTIONS FOR THE
+    OTHER CANONICAL MODELS. TRY GIVE SHORTER NAMES.
 
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the response matrices Rij(t) encode the temporal
@@ -132,7 +223,8 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
             xdot(t) = - x(t) / tau + A x(t).
 
     where tau is a leakage time-constant for a dissipation of the flows through
-    the nodes.
+    the nodes. This model is reminiscent of the multivariate Ornstein-Uhlenbeck
+    process, when additive Gaussian white noise is included.
     Given λmax is the largest eigenvalue of the (positive definite) matrix A, then
     - if tau < tau_max = 1 / λmax, then the leakage term dominates in the long
     time and the solutions for all nodes converge to zero.
@@ -157,9 +249,9 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
         - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
         employed as the amplitudes of the inputs to node i. Extradiagonal
         value M_ij will be considered as correlated noise Gaussian noise. This
-        case is left for situations in which the system is interpreted as the
-        multivariate Ornstein-Uhlenbeck process, which is the same equation but
-        with additive Gaussian noise applied on the nodes.
+        case is left available for situations in which the system is interpreted
+        as the multivariate Ornstein-Uhlenbeck process, which is the same
+        equation but with additive Gaussian noise applied on the nodes.
     tmax : real valued number, positive (optional)
         Final time for integration.
     timestep : real valued number, positive (optional)
@@ -203,7 +295,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    resp_matrices = np.zeros((nt,N,N), dtype=float   )
+    resp_matrices = np.zeros((nt,N,N), dtype=float)
 
     if case == 'regressed':
         for i_t in range(nt):
@@ -212,7 +304,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
-            # Calculate the dynamic communicability at time t
+            # Calculate the pair-wise responses at time t
             resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
     elif case == 'intrinsic':
@@ -220,7 +312,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
-            # Calculate the dynamic communicability at time t.
+            # Calculate the pair-wise responses at time t
             resp_matrices[i_t] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'full':
@@ -228,7 +320,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
             t = i_t * timestep
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
-            # Calculate the non-normalised flow at time t.
+            # Calculate the pair-wise responses at time t
             resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t )
 
     # 2.2) Normalise by the scaling factor
@@ -239,7 +331,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=20, timestep=0.1,
     return resp_matrices
 
 
-def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
+def CalcTensor(con, tau, sigma, tmax=10, timestep=0.1,
                                                 normed=False, case='DynFlow'):
     """Generic function to create time evolution of the flows.
 
@@ -329,7 +421,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
 
 
 ## Wrappers using CalcTensor() ___________________________________________
-def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
+def DynFlow(con, tau, sigma, tmax=10, timestep=0.1, normed=False):
     """Pair-wise conditional flows on a network over time for a given input.
 
     DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
@@ -367,7 +459,7 @@ def DynFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
 
     return dynflow_tensor
 
-def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
+def IntrinsicFlow(con, tau, sigma, tmax=10, timestep=0.1, normed=False):
     """Returns the flow dissipated through each node over time.
 
     DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
@@ -405,7 +497,7 @@ def IntrinsicFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
 
     return flow_tensor
 
-def FullFlow(con, tau, sigma, tmax=20, timestep=0.1, normed=False):
+def FullFlow(con, tau, sigma, tmax=10, timestep=0.1, normed=False):
     """Returns the complete flow on a network over time for a given input.
 
     DEPRECATED FUNCTION: USE RespMatrices_LeakyCascade() INSTEAD.
