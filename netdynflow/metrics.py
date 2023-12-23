@@ -20,7 +20,7 @@ Metrics derived from the tensors
 --------------------------------
 TotalEvolution
     Calculates total amount of flow through the network at every time point.
-NodeFlows
+NodeResponses
     Temporal evolution of the input and output flows for each node.
 Diversity
     Inhomogeneity of the pair-wise flows in a networks over time.
@@ -108,7 +108,7 @@ def Diversity(tensor):
 
     return diversity
 
-def NodeFlows(tensor, selfloops=False):
+def NodeResponses(tensor, selfloops=False):
     """
     Temporal evolution of the input and output flows for each node.
 
@@ -127,7 +127,7 @@ def NodeFlows(tensor, selfloops=False):
 
     Returns
     -------
-    nodeflows : tuple.
+    NodeResponses : tuple.
         Temporal evolution of the input and output flows for all nodes.
         The result consists of a tuple containing two ndarrays of shape (nt,N).
         The first is for the input flows into a node over time and the second
@@ -156,8 +156,8 @@ def NodeFlows(tensor, selfloops=False):
             inflows[:,i]  = tensor[:,:,i].sum(axis=1) - tempdiags
             outflows[:,i] = tensor[:,i,:].sum(axis=1) - tempdiags
 
-    nodeflows = ( inflows, outflows )
-    return nodeflows
+    NodeResponses = ( inflows, outflows )
+    return NodeResponses
 
 def Time2Peak(arr, timestep):
     """
