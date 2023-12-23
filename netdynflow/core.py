@@ -114,8 +114,74 @@ def JacobianMOU(con, tau):
 
 # TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
 
+def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
+    """Computes the pair-wise responses over time for the discrete cascade model.
+
+    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
+    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
+    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
+
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the response matrices Rij(t) encode the temporal
+    response observed at node j due to a short stimulus applied on node i at
+    time t=0.
+    The discrete cascade is the simplest linear propagation model for
+    DISCRETE VARIABLE and DISCRETE TIME in a network. It is represented by
+    the following iterative equation:
+
+            x(t+1) = A x(t) .
+
+    This system is NON-CONSERVATIVE and leads to DIVERGENT dynamics. If all
+    entries of A are positive, e.g, A is a binary graph, the both the solutions
+    x_i(t) and the responses Rij(t) rapidly explode.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+        The covariance matrix of the inputs.
+        - The default value 'sigma=None' applies an input of amplitude 1.0
+        to all nodes.
+        - If a vector v of length N is entered, each node will receive an initial
+        input of amplitude v_i.
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+
+    Returns
+    -------
+    resp_matrices : ndarray of rank-3
+        Temporal evolution of the pair-wise responses. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
+        the number of time steps. The first time point contains the matrix of
+        inputs (sigma).
+    """
+    # 0) SECURITY CHECKS
+    N = len(con)
+    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
+    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
+    # 1) CALCULATE THE RESPONSE MATRICES
+    # 1.1) Define some helper parameters
+    nt = int(tmax) + 1
+    # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
+    sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
+
+    # Define the tensor where responses will be stored
+    resp_matrices = np.zeros((nt,N,N), dtype=float )
+
+    # 1.2) Compute the pair-wise response matrices over time
+    resp_matrices[0] = sigma_matrix
+    for i_t in range(1,nt):
+        resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], con)
+
+    return resp_matrices
+
+
 def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
-    """Computes the pair-wise responses over time for the leaky-cascade model.
+    """Computes the pair-wise responses over time for the continuous cascade model.
 
     TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
     I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
@@ -175,7 +241,7 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
     if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
     if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
 
-    # 1) CALCULATE THE DYNAMIC FLOW
+    # 1) CALCULATE THE RESPONSE MATRICES
     # 1.1) Define some helper parameters
     nt = int(tmax / timestep) + 1
     # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
@@ -290,7 +356,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
     jac = JacobianMOU(con, tau)
     jacdiag = np.diagonal(jac)
 
-    # 2) CALCULATE THE DYNAMIC FLOW
+    # 1) CALCULATE THE RESPONSE MATRICES
     # 2.1) Calculate the extrinsic flow over integration time
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
