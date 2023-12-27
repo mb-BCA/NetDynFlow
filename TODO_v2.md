@@ -12,8 +12,14 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 
 ### Pending
 
+- Add functions to *core.py* module to compute R(t) for the different models:
+	- (DONE) Unify the functions for the MOU case into one function.
+	- (DONE) R(t) for the constinuous cascade.
+	- (DONE) R(t) for the discrete cascade.
+	- R(t) for the random walks.
+	- R(t) for the continuous diffusion.
 - Add functions to the *metrics.py* module:
-	- To return the peak flows. I know, it is really trivial to compute but… we need to give these things in functions for beginer users. 
+	- (DONE) To return the peak flows. I know, it is really trivial to compute but… we need to give these things in functions for beginer users. 
 	- We need a function to verify the response curve has reached "zero". Not sure of the criteria that should be applied to this, specially considering the small numbers that flows tend to have. At this moment, it is the user's responsability to guarantee that all the curves have decayed reasonably well. If the responses haven't properly decay, the function should return a warning, recommending to run longer simulations.
 	- We need a function to extract and study the evolution of the self-interactions. That is, the temporal response of a node to a perturbation on itself at time t = 0. This is in a way what Ernesto called "returnability" but we have that over time. Remind that in graphs the clustering coefficient is indeed calculated in this manner, for loops of lenght = 3, but longer loops could be included.
 
