@@ -560,6 +560,122 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
 
     return resp_matrices
 
+def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
+                                                case='regressed', normed=False):
+    """Computes the pair-wise responses over time for the leaky-cascade model.
+
+    TODO: DECIDE A BETTER NAME. WILL DEPEND ON HOW TO NAME THE FUNCTIONS FOR THE
+    OTHER CANONICAL MODELS. TRY GIVE SHORTER NAMES.
+
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the response matrices Rij(t) encode the temporal
+    response observed at node j due to a short stimulus applied on node i at
+    time t=0.
+    The continuous diffusion is the simplest time-continuous and variable-
+    continuous linear propagation model with diffusive coupling. It is
+    represented by the following differential equation:
+
+            xdot(t) = -D x(t) + A x(t) = L x(t).
+
+    where D is a diagonal matrix containing the (output) degrees of the nodes
+    in the diagonal, and L = -D + A is the graph Laplacian matrix. This model
+    is reminiscent of the continuous leaky cascade but considering that
+    tau(i) = 1./deg(i). As such, the input and the leaked flows are balanced
+    at each node.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+        The covariance matrix of the inputs.
+        - The default value 'sigma=None' applies an input of amplitude 1.0
+        to all nodes.
+        - If a vector v of length N is entered, each node will receive an initial
+        input of amplitude v_i.
+        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
+        employed as the amplitudes of the inputs to node i. Extradiagonal
+        value M_ij will be considered as correlated noise Gaussian noise. This
+        case is left available for situations in which the system is interpreted
+        as the multivariate Ornstein-Uhlenbeck process, which is the same
+        equation but with additive Gaussian noise applied on the nodes.
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+    timestep : real valued number, positive (optional)
+        Sampling time-step.
+        Warning - Not an integration step, just the desired sampling rate.
+    case : string (optional)
+        TODO: WRITE ME HERE !!
+    normed : boolean (optional)
+        If True, it employs the normalised graph Laplacian L' = D^-1 L.
+
+    Returns
+    -------
+    resp_matrices : ndarray of rank-3
+        Temporal evolution of the pair-wise responses. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
+        the number of time steps.
+    """
+    # 0) SECURITY CHECKS
+    N = len(con)
+
+    if sigma is None: sigma = np.identity(N, dtype=float)
+    elif len(np.shape(sigma)) == 1: sigma = sigma * np.identity(N, dtype=float)
+
+    # TODO: Add validation of tau. Constant or vector
+
+    caselist = ['regressed', 'full', 'intrinsic']
+    if case not in caselist:
+        raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
+
+    # 1) CALCULATE THE JACOBIAN MATRIX
+    # NOTE: The graph Laplacian is the Jacobian matrix of the linear propagation
+    # model based with diffusive coupling. Hence, after calling the Laplacian in
+    # the next line, the code is the same as for the Leaky Cascade.
+    jac = LaplacianMatrix(con, normed=normed)
+    jacdiag = np.diagonal(jac)
+
+    # 1) CALCULATE THE RESPONSE MATRICES
+    # 2.1) Calculate the extrinsic flow over integration time
+    nt = int(tmax / timestep) + 1
+    sigma_sqrt = scipy.linalg.sqrtm(sigma)
+
+    resp_matrices = np.zeros((nt,N,N), dtype=float)
+
+    if case == 'regressed':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the pair-wise responses at time t
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+
+    elif case == 'intrinsic':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the term for jacdiag without using expm(), to speed up
+            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the pair-wise responses at time t
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jacdiag_t)
+
+    elif case == 'full':
+        for i_t in range(nt):
+            t = i_t * timestep
+            # Calculate the jaccobian at given time
+            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the pair-wise responses at time t
+            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t )
+
+    return resp_matrices
+
+
+
 
 def CalcTensor(con, tau, sigma, tmax=10, timestep=0.1,
                                                 normed=False, case='DynFlow'):
