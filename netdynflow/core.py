@@ -106,11 +106,11 @@ def TransitionMatrix(con, rwcase='simple'):
     tp_matrix = con.copy().astype(float)
 
     if rwcase=='simple':
-        indegree = con.sum(axis=0)
+        outdegree = con.sum(axis=1)
         for i in range(N):
             # Avoids NaN values in tp_matrix if node is disconnected
-            if indegree[i]:
-                tp_matrix[i] = con[i] / indegree[i]
+            if outdegree[i]:
+                tp_matrix[i] = con[i] / outdegree[i]
 
     return tp_matrix
 
@@ -163,46 +163,49 @@ def JacobianMOU(con, tau):
 
     return jac
 
-# def LaplacianMatrix(con, normed=False):
-#     """Calculates the graph Laplacian .
-#
-#     TODO: WRITE THE DESCRIPTION HERE
-#
-#     Parameters
-#     ----------
-#     con : ndarray of rank-2
-#         The adjacency matrix of the network.
-#     normed : boolean (optional)
-#         If True, it returns the normalised graph Laplacian.
-#
-#     Returns
-#     -------
-#     lap : ndarray of rank-2
-#         The graph Laplacian matrix of shape N x N.
-#     """
-#     # 0) SECURITY CHECKS
-#     # Check the input connectivity matrix
-#     con_shape = np.shape(con)
-#     if len(con_shape) != 2:
-#         raise ValueError( "'con' not a matrix." )
-#     if con_shape[0] != con_shape[1]:
-#         raise ValueError( "'con' not a square matrix." )
-#
-#     if type(normed) != bool:
-#         raise ValueError( "Please set 'normed' as True or False" )
-#
-#     # Make sure con is a ndarray of dtype = float64
-#     con = np.array(con, dtype=float)
-#     N = con_shape[0]
-#
-#     # 1) CALCULATE THE JACOBIAN MATRIX
-#     jacdiag = -np.ones(N, dtype=float) / tau
-#     jac = np.diag(jacdiag) + con
-#
-#     lap = - indegree * np.identity(N, dtype=float) + con
-#
-#
-#     return jac
+def LaplacianMatrix(con, normed=False):
+    """Calculates the graph Laplacian .
+
+    TODO: WRITE THE DESCRIPTION HERE
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    normed : boolean (optional)
+        If True, it returns the normalised graph Laplacian.
+
+    Returns
+    -------
+    lap : ndarray of rank-2
+        The graph Laplacian matrix of shape N x N.
+    """
+    # 0) SECURITY CHECKS
+    # Check the input connectivity matrix
+    con_shape = np.shape(con)
+    if len(con_shape) != 2:
+        raise ValueError( "'con' not a matrix." )
+    if con_shape[0] != con_shape[1]:
+        raise ValueError( "'con' not a square matrix." )
+
+    if type(normed) != bool:
+        raise ValueError( "Please set 'normed' as True or False" )
+
+    # Make sure con is a ndarray of dtype = float64
+    con = np.array(con, dtype=float)
+    N = con_shape[0]
+
+    # 1) CALCULATE THE GRAPH LAPLACIAN MATRIX
+    outdegree = con.sum(axis=1)
+    lap = - outdegree * np.identity(N, dtype=float) + con
+
+    if normed:
+        for i in range(N):
+            # Avoids NaN values in tp_matrix if node is disconnected
+            if outdegree[i]:
+                lap[i] /= outdegree[i]
+
+    return lap
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
