@@ -20,6 +20,7 @@
 	- Double check the instructions in the initial docstring. New names of functions. Make sure the examples work if copy/pasted.
 	- Update list of changes.
 
+- Update the references to the papers / pre-prints.
 - Finally: merge the thest branch. 
 
 #### After the merge:
