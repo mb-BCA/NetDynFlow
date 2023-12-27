@@ -27,14 +27,12 @@ JacobianMOU
 
 Generation of main tensors
 --------------------------
-CalcTensor
-    Generic function to create time evolution of the flows.
-DynFlow
-    Pair-wise conditional flows on a network over time for a given input.
-IntrinsicFlow
-    Returns the flow dissipated through each node over time.
-FullFlow
-    Returns the complete flow on a network over time for a given input.
+RespMatrices_DiscreteCascade
+    Computes the pair-wise responses over time for the discrete cascade model.
+RespMatrices_ContCascade
+    Computes the pair-wise responses over time for the continuous cascade model.
+RespMatrices_LeakyCascade
+    Computes the pair-wise responses over time for the leaky-cascade model.
 
 Reference and Citation
 ----------------------
@@ -178,7 +176,6 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
         resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], con)
 
     return resp_matrices
-
 
 def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
     """Computes the pair-wise responses over time for the continuous cascade model.
