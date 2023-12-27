@@ -22,6 +22,8 @@ state of the network at consecutive time points.
 
 Helper functions
 ----------------
+TransitionMatrix
+    Returns the transition probability matrix for random walks.
 JacobianMOU
     Calculates the Jacobian matrix for the MOU dynamic system.
 
@@ -29,6 +31,8 @@ Generation of main tensors
 --------------------------
 RespMatrices_DiscreteCascade
     Computes the pair-wise responses over time for the discrete cascade model.
+RespMatrices_RandomWalk
+    Computes the pair-wise responses over time for the simple random walk model.
 RespMatrices_ContCascade
     Computes the pair-wise responses over time for the continuous cascade model.
 RespMatrices_LeakyCascade
@@ -60,8 +64,61 @@ import scipy.linalg
 # FOR THOSE CASES.
 
 ## USEFUL FUNCTIONS ##########################################################
+def TransitionMatrix(con, rwcase='simple'):
+    """Returns the transition probability matrix for random walks.
+
+    - If rwcase='simple'
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the transition probability matrix for a simple
+    random walk is computed as Tij = Aij / deg(i), where deg(i) is the output
+    (weighted) degree of node i.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    rwcase : string (optional)
+        Default 'simple' returns the transition probability matrix for the
+        simple random walk.
+        NOTE: For now only the simple random walk is supported. Optional
+        parameter available to cover different calsses of random walks in future
+        releases.
+
+    Returns
+    -------
+    tp_matrix : ndarray of rank-2
+        The transition probability matrix of shape N x N.
+    """
+
+    # 0) SECURITY CHECKS
+    con_shape = np.shape(con)
+    if len(con_shape) != 2:
+        raise ValueError( "'con' not a matrix." )
+    if con_shape[0] != con_shape[1]:
+        raise ValueError( "'con' not a square matrix." )
+
+    caselist = ['simple']
+    if rwcase not in caselist:
+        raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
+
+    # 1) COMPUTE THE TRANSITION PROBABILITY MATRIX
+    N = con_shape[0]
+    tp_matrix = con.copy().astype(float)
+
+    if rwcase=='simple':
+        indegree = con.sum(axis=0)
+        for i in range(N):
+            # Avoids NaN values in tp_matrix if node is disconnected
+            if indegree[i]:
+                tp_matrix[i] = con[i] / indegree[i]
+
+    return tp_matrix
+
 def JacobianMOU(con, tau):
     """Calculates the Jacobian matrix for the MOU dynamic system.
+
+    TODO: RETHINK THE NAME OF THIS FUNCTION. MERGE DIFFERENT JACOBIAN GENERATOR
+    FUNCTIONS INTO A SINGLE FUNCTION ?
 
     Parameters
     ----------
@@ -137,7 +194,7 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
     ----------
     con : ndarray of rank-2
         The adjacency matrix of the network.
-    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+    sigma : None or ndarray of rank-1 (optional)
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0
         to all nodes.
@@ -174,6 +231,73 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
     resp_matrices[0] = sigma_matrix
     for i_t in range(1,nt):
         resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], con)
+
+    return resp_matrices
+
+def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
+    """Computes the pair-wise responses over time for the simple random walk model.
+
+    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
+    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
+    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
+
+    Given a connectivity matrix A, where Aij represents the (weighted)
+    connection from i to j, the transition probability matrix is computed as
+    Tij = Aij / deg(i), where deg(i) is the output (weighted) degree of node i.
+    The response matrices Rij(t) encode the temporal response observed at
+    node j due to a short stimulus applied on node i at time t=0.
+    The random walk is the simplest linear propagation model for DISCRETE
+    VARIABLE and DISCRETE TIME in a network. It is represented by the following
+    iterative equation:
+
+            x(t+1) = T x(t) .
+
+    This system is CONSERVATIVE and leads to CONVERGENT dynamics. At any time
+    t > 0 the number of walkers (or agents) found in the network is the same
+    as the number of walkers initially seeded.
+
+    Parameters
+    ----------
+    con : ndarray of rank-2
+        The adjacency matrix of the network.
+    sigma : None or ndarray of rank-1 (optional)
+        The number of walkers per node initially seeded.
+        - The default value 'sigma=None' begins with one walker at each node.
+        - If a vector v of length N is entered, each node will be initialised
+        with the number of walkers given in v_i.
+    tmax : real valued number, positive (optional)
+        Final time for integration.
+
+    Returns
+    -------
+    resp_matrices : ndarray of rank-3
+        Temporal evolution of the pair-wise responses. A tensor of shape
+        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
+        the number of time steps. The first time point contains the matrix of
+        inputs (sigma).
+    """
+    # 0) SECURITY CHECKS
+    N = len(con)
+    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
+    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
+    # 1) CALCULATE THE RESPONSE MATRICES
+    # 1.1) Define some helper parameters
+    nt = int(tmax) + 1
+
+    # Define the transition probability matrix
+    tpmatrix = TransitionMatrix(con, rwcase='simple')
+
+    # Define the tensor where responses will be stored
+    resp_matrices = np.zeros((nt,N,N), dtype=float)
+
+    # 1.2) Compute the pair-wise response matrices over time
+    resp_matrices[0] = sigma_matrix
+    for i_t in range(1,nt):
+        resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], tpmatrix)
+        # resp_matrices[i_t] = np.matmul(tpmatrix, resp_matrices[i_t-1])
 
     return resp_matrices
 
@@ -321,7 +445,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
         Sampling time-step.
         Warning - Not an integration step, just the desired sampling rate.
     case : string (optional)
-        WRITE ME HERE !!
+        TODO: WRITE ME HERE !!
     normed : boolean (optional)
         If True, normalises the tensor by a scaling factor, to make networks
         of different size comparable.
