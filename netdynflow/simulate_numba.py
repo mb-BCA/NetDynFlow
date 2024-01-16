@@ -41,101 +41,10 @@ from numba import jit
 
 
 ## DISCRETE-TIME CANONICAL MODELS #############################################
-# def DiscreteCascade(con, X0, tmax=10):
-#     """Simulates temporal evolution of the nodes for the discrete cascade.
-#
-#     It returns the time-series of the nodes for the discrete cascade model
-#
-#             x(t+1) = A x(t),
-#
-#     If A is a positive definite connectivity  matrix, then the solutions
-#     xt grow exponentially fast.
-#
-#     Parameters
-#     ----------
-#     con : ndarray of rank-2, and shape (N,N).
-#         The adjacency matrix of the network.
-#     X0 : ndarray of rank-1, and length N.
-#         The initial conditions. Entries X0[i] are the inital values of the nodes.
-#         They can be either positive or negative, real or integer values.
-#     tmax : integer. (optional)
-#         The duration of the simulation in arbitrary time units.
-#
-#     Returns
-#     -------
-#     Xt : ndarray of rank-2
-#         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
-#     """
-#
-#     # 0) SECURITY CHECKS
-#     # To be done ...
-#     # Make sure tmax is an integer, or convert to it.
-#     # Make sure X0 is 1D, if given by the user.
-#
-#     # 1) PREPARE FOR THE SIMULATION
-#     # Infos about the network
-#     N = len(con)
-#     conT = np.copy(con.T, order='C')
-#     # Initialise the output array and enter the initial conditions
-#     Xt = np.zeros((tmax+1,N), np.float64)
-#     Xt[0] = X0
-#
-#     # 2) RUN THE SIMULATION
-#     for t in range(1,tmax+1):
-#         Xt[t] = np.dot(conT, Xt[t-1])
-#
-#     return Xt
-#
-# def RandomWalk(con, X0, tmax=10):
-#     """Simulates temporal evolution of the nodes for the random walks.
-#
-#     It returns the time-series of the nodes for the discrete cascade model
-#
-#             x(t+1) = T x(t),
-#
-#     where T is the transition probability matrix. The solutions are computed
-#     recursively iterating the equation above. If A is a positive definite
-#     connectivity matrix the solutions converge to x_i(inf) values proportional
-#     to the input degree of the nodes.
-#
-#     Parameters
-#     ----------
-#     con : ndarray of rank-2, and shape (N,N).
-#         The adjacency matrix of the network.
-#     X0 : ndarray of rank-1, and length N.
-#         The initial conditions. Entries X0[i] are the number of walkers
-#         starting at each node.
-#     tmax : integer. (optional)
-#         The duration of the simulation in arbitrary time units.
-#
-#     Returns
-#     -------
-#     Xt : ndarray of rank-2
-#         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
-#         Xt[0] corresponds to the initial conditions.
-#     """
-#     # 0) SECURITY CHECKS
-#     # To be done ...
-#     # Make sure tmax is an integer, or convert to it.
-#     # Make sure X0 is 1D, if given by the user.
-#
-#     # 1) PREPARE FOR THE SIMULATION
-#     # Compute the transition probability matrix
-#     N = len(con)
-#     Tmat = con / con.sum(axis=0)    # Assumes Aij = 1 if i -> j
-#     # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
-#
-#     # Initialise the output array and enter the initial conditions
-#     Xt = np.zeros((tmax+1,N), np.float64)
-#     Xt[0] = X0
-#
-#     # 2) RUN THE SIMULATION
-#     for t in range(1,tmax+1):
-#         Xt[t] = np.dot(Tmat, Xt[t-1])
-#
-#     return Xt
-#
-#
+
+
+
+
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
 def ContinuousCascade(con, X0, noise=None, tmax=10, timestep=0.01):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
