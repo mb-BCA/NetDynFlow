@@ -147,6 +147,7 @@ from .core import *
 from . import metrics
 from .metrics import *
 from . import simulate
+from . import simulate_numba
 from . import tools
 from . import netmodels
 from . import metrics_test
@@ -157,7 +158,7 @@ __email__ = "galib@Zamora-Lopez.xyz"
 __copyright__ = "Copyright 2024"
 __license__ = "Apache License version 2.0"
 __version__ = "2.0.0.dev1"
-__update__ = "10/12/2023"
+__update__ = "16/01/2024"
 
 
 #
