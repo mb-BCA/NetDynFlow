@@ -65,15 +65,19 @@ def DiscreteCascade(con, X0, tmax=10):
     Xt : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
     """
-
-    # 0) SECURITY CHECKS
-    # To be done ...
-    # Make sure tmax is an integer, or convert to it.
-    # Make sure X0 is 1D, if given by the user.
+    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
+    # Check the times
+    if not isinstance(tmax, numbers.Number):
+        raise ValueError( "'tmax' should be a number" )
+    # Check the connectivity matrix
+    N = len(con)
+    # Ensure all arrays are of same dtype (np.float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
-    # Infos about the network
     N = len(con)
+    # Tanspose the connectivity matrix
     conT = np.copy(con.T, order='C')
     # Initialise the output array and enter the initial conditions
     Xt = np.zeros((tmax+1,N), np.float64)
