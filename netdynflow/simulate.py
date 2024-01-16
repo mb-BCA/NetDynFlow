@@ -117,10 +117,15 @@ def RandomWalk(con, X0, tmax=10):
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
         Xt[0] corresponds to the initial conditions.
     """
-    # 0) SECURITY CHECKS
-    # To be done ...
-    # Make sure tmax is an integer, or convert to it.
-    # Make sure X0 is 1D, if given by the user.
+    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
+    # Check the times
+    if not isinstance(tmax, numbers.Number):
+        raise ValueError( "'tmax' should be a number" )
+    # Check the connectivity matrix
+    N = len(con)
+    # Ensure all arrays are of same dtype (np.float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
     # Compute the transition probability matrix
