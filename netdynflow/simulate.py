@@ -33,7 +33,7 @@ ContinuousDiffusion
 
 """
 # Standard libary imports
-
+import numbers
 # Third party packages
 import numpy as np
 
@@ -242,40 +242,58 @@ def LeakyCascade(con, X0, tau, tmax=10, timestep=0.01, noise=None):
         Time-courses of the N nodes. A numpy array of shape (nsteps, N),
         where nsteps = int(tmax*timestep) + 1.
     """
+    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
+    # Check the times
+    if not isinstance(tmax, numbers.Number):
+        raise ValueError( "'tmax' should be a number" )
+    if not isinstance(timestep, numbers.Number):
+        raise ValueError( "'timestep' should be a number" )
+    # Calculate the simulation length
+    nsteps = int(tmax / timestep) + 1
 
-    # 0) SECURITY CHECKS
+    # Check the connectivity matrix
     N = len(con)
-    # To be done ...
 
-    # Check the tau constant, in case it is a 1-dimensional array-like.
-    tau_shape = np.shape(tau)
-    if tau_shape:
-        if len(tau_shape) != 1:
-            raise ValueError( "tau must be either a float or a 1D array." )
-        if tau_shape[0] != N:
-            raise ValueError( "'con' and tau not aligned." )
-        # Make sure tau is a ndarray of dytpe = np.float64
-        tau = np.array(tau, dtype=np.float)
+    # Check whether tau is given as an scalar or an ndarray
+    if isinstance(tau, np.ndarray): pass
+    elif isinstance(tau, numbers.Number):
+        # If scalar, give same value to all nodes
+        tau = tau * np.ones(N, np.float64)
+    elif isinstance(tau, (list,tuple)):
+        # If array-like, convert to ndarray
+        tau = np.array(tau, np.float64)
     else:
-        tau = tau * np.ones(N, dtype=np.float)
+        raise TypeError( "'tau' should be either a scalar or 1D array-like of length N." )
+
+    # Handle the noise input.
+    if noise is None:
+        # If nothing given by user, set noise to zeros.
+        noise = np.zeros((nsteps,N), dtype=np.float64)
+    elif isinstance(noise, np.ndarray): pass
+    elif isinstance(noise, (list, tuple)):
+        # If array-like, convert to ndarray
+        noise = np.array(noise, np.float64)
+    else:
+        raise TypeError( "'noise' should be either None or a 2D array-like of shape (nsteps,N)." )
+
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
+    if tau.dtype != np.float64:     tau = tau.astype(np.float64)
+    if noise.dtype != np.float64:  noise = noise.astype(np.float64)
 
 
     # 1) PREPARE FOR THE SIMULATION
-    # Infos about the network
+    # Transpose the connectivity matrix
     conT = np.copy(con.T, order='C')
-
-    # Set the leakage time-constants to default, if not given by the user
-    if tau is None: tau = np.ones(N, dtype=np.float64)
+    # Conver the time-constants into decay rations
     alphas = 1./tau
 
     # Initialise the output array
-    nsteps = int(tmax / timestep) + 1
+    # nsteps = int(tmax / timestep) + 1
     Xdot = np.zeros((nsteps, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
-
-    # Set the noise array to default, if not given by the user
-    if noise is None: noise = np.zeros((nsteps,N), dtype=np.float64)
 
     # 2) RUN THE SIMULATION
     for t in range(1,nsteps):
