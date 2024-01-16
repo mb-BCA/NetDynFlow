@@ -199,7 +199,7 @@ def ContinuousCascade(con, X0, tmax=10, timestep=0.01, noise=None):
 
     return Xdot
 
-def LeakyCascade(con, X0, tau, tmax=10, timestep=0.01, noise=None):
+def LeakyCascade(con, X0, tau, noise=None, tmax=10, timestep=0.01):
     """Simulates temporal evolution of the nodes for the leaky-cascade model.
 
     It solves the differential equation for the linear propagation model of
