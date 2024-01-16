@@ -136,7 +136,7 @@ def RandomWalk(con, X0, tmax=10):
 
 
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
-def ContinuousCascade(con, X0, tmax=10, timestep=0.01, noise=None):
+def ContinuousCascade(con, X0, noise=None, tmax=10, timestep=0.01):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
 
     It solves the differential equation for the simplest possible linear
@@ -155,15 +155,15 @@ def ContinuousCascade(con, X0, tmax=10, timestep=0.01, noise=None):
     X0 : ndarray of rank-1, and length N.
         The initial conditions. Entries X0[i] are the inital values of the nodes.
         They can be either positive or negative, real or integer values.
-    tmax : scalar (optional)
-        The duration of the simulation in arbitrary time units.
-    timestep : scalar (optional)
-        The time-step of the numerical integration.
     noise : ndarray of rank-2 (optional)
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
         (nsteps, N), where nsteps = int(tmax*timestep+1) and N is the number of nodes.
+    tmax : scalar (optional)
+        The duration of the simulation in arbitrary time units.
+    timestep : scalar (optional)
+        The time-step of the numerical integration.
 
     Returns
     -------
@@ -171,22 +171,42 @@ def ContinuousCascade(con, X0, tmax=10, timestep=0.01, noise=None):
         Time-courses of the N nodes. A numpy array of shape (nsteps, N),
         where nsteps = int(tmax*timestep) + 1.
     """
-    # 0) SECURITY CHECKS
-    # To be done ...
+    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
+    # Check the times
+    if not isinstance(tmax, numbers.Number):
+        raise ValueError( "'tmax' should be a number" )
+    if not isinstance(timestep, numbers.Number):
+        raise ValueError( "'timestep' should be a number" )
+    # Calculate the simulation length
+    nsteps = int(tmax / timestep) + 1
+
+    # Check the connectivity matrix
+    N = len(con)
+
+    # Handle the noise input.
+    if noise is None:
+        # If nothing given by user, set noise to zeros.
+        noise = np.zeros((nsteps,N), dtype=np.float64)
+    elif isinstance(noise, np.ndarray): pass
+    elif isinstance(noise, (list, tuple)):
+        # If array-like, convert to ndarray
+        noise = np.array(noise, np.float64)
+    else:
+        raise TypeError( "'noise' should be either None or a 2D array-like of shape (nsteps,N)." )
+
+    # Ensure all arrays are of same dtype (np.float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
+    if noise.dtype != np.float64:  noise = noise.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
-    # Infos about the network
-    N = len(con)
+    # Transpose the connectivity matrix
     conT = np.copy(con.T, order='C')
 
     # Initialise the output array
-    nsteps = int(tmax / timestep) + 1
     Xdot = np.zeros((nsteps, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
-
-    # Set the noise array to default, if not given by the user
-    if noise is None: noise = np.zeros((nsteps,N), dtype=np.float64)
 
     # 2) RUN THE SIMULATION
     for t in range(1,nsteps):
@@ -194,7 +214,6 @@ def ContinuousCascade(con, X0, tmax=10, timestep=0.01, noise=None):
         # Calculate the input to nodes due to couplings
         xcoup = np.dot(conT,Xpre)
         # Integration step
-        # Xdot[t] = Xpre + timestep * ( gcoupling*xcoup ) + noise[t]
         Xdot[t] = Xpre + timestep * xcoup + noise[t]
 
     return Xdot
