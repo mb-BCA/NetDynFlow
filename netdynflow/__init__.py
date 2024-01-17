@@ -147,7 +147,6 @@ from .core import *
 from . import metrics
 from .metrics import *
 from . import simulate
-from . import simulate_numba
 from . import tools
 from . import netmodels
 from . import metrics_test
