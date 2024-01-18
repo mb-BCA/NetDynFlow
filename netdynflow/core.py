@@ -26,6 +26,8 @@ TransitionMatrix
     Returns the transition probability matrix for random walks.
 JacobianMOU
     Calculates the Jacobian matrix for the MOU dynamic system.
+LaplacianMatrix
+    Calculates the graph Laplacian.
 
 Generation of main tensors
 --------------------------
@@ -93,12 +95,10 @@ def TransitionMatrix(con, rwcase='simple'):
         The transition probability matrix of shape N x N.
     """
 
-    # 0) SECURITY CHECKS
-    con_shape = np.shape(con)
-    if len(con_shape) != 2:
-        raise ValueError( "'con' not a matrix." )
-    if con_shape[0] != con_shape[1]:
-        raise ValueError( "'con' not a square matrix." )
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    io_helpers.validate_con(con)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    N = len(con)
 
     caselist = ['simple']
     if rwcase not in caselist:
@@ -107,7 +107,6 @@ def TransitionMatrix(con, rwcase='simple'):
     # 1) COMPUTE THE TRANSITION PROBABILITY MATRIX
     N = con_shape[0]
     tp_matrix = con.copy().astype(float)
-
     if rwcase=='simple':
         outdegree = con.sum(axis=1)
         for i in range(N):
@@ -138,28 +137,14 @@ def JacobianMOU(con, tau):
     jac : ndarray of rank-2
         The Jacobian matrix of shape N x N for the MOU dynamical system.
     """
-    # 0) SECURITY CHECKS
-    # Check the input connectivity matrix
-    con_shape = np.shape(con)
-    if len(con_shape) != 2:
-        raise ValueError( "'con' not a matrix." )
-    if con_shape[0] != con_shape[1]:
-        raise ValueError( "'con' not a square matrix." )
-    # Make sure con is a ndarray of dtype = float64
-    con = np.array(con, dtype=float)
-    N = con_shape[0]
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    io_helpers.validate_con(con)
+    N = len(con)
+    tau = io_helpers.validate_tau(tau, N)
 
-    # Check the tau constant, in case it is a 1-dimensional array-like.
-    tau_shape = np.shape(tau)
-    if tau_shape:
-        if len(tau_shape) != 1:
-            raise ValueError( "tau must be either a float or a 1D array." )
-        if tau_shape[0] != N:
-            raise ValueError( "'con' and tau not aligned." )
-        # Make sure tau is a ndarray of dytpe = float64
-        tau = np.array(tau, dtype=float)
-    else:
-        tau = tau * np.ones(N, dtype=float)
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if tau.dtype != np.float64:    tau = tau.astype(np.float64)
 
     # 1) CALCULATE THE JACOBIAN MATRIX
     jac = -1.0/tau * np.identity(N, dtype=float) + con
@@ -167,7 +152,7 @@ def JacobianMOU(con, tau):
     return jac
 
 def LaplacianMatrix(con, normed=False):
-    """Calculates the graph Laplacian .
+    """Calculates the graph Laplacian.
 
     TODO: WRITE THE DESCRIPTION HERE
 
@@ -183,19 +168,10 @@ def LaplacianMatrix(con, normed=False):
     lap : ndarray of rank-2
         The graph Laplacian matrix of shape N x N.
     """
-    # 0) SECURITY CHECKS
-    # Check the input connectivity matrix
-    con_shape = np.shape(con)
-    if len(con_shape) != 2:
-        raise ValueError( "'con' not a matrix." )
-    if con_shape[0] != con_shape[1]:
-        raise ValueError( "'con' not a square matrix." )
-
-    if type(normed) != bool:
-        raise ValueError( "Please set 'normed' as True or False" )
-
-    # Make sure con is a ndarray of dtype = float64
-    con = np.array(con, dtype=float)
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
+    if con.dtype != np.float64:
+        con = con.astype(np.float64)
     N = con_shape[0]
 
     # 1) CALCULATE THE GRAPH LAPLACIAN MATRIX
@@ -257,23 +233,28 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
         the number of time steps. The first time point contains the matrix of
         inputs (sigma).
     """
-    # 0) SECURITY CHECKS
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    io_helpers.validate_con(con)
     N = len(con)
-    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
-    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+    # sigma = io_helpers.validate_sigma()
 
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    # if sigma is None: sigma_matrix = np.identity(N, dtype=float)
+    # elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+    #
+    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if con.dtype != np.float64:    sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
-    # 1.1) Define some helper parameters
     nt = int(tmax) + 1
     # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
     sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
-
     # Define the tensor where responses will be stored
     resp_matrices = np.zeros((nt,N,N), dtype=float )
 
-    # 1.2) Compute the pair-wise response matrices over time
+    # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     resp_matrices[0] = sigma_matrix
     for i_t in range(1,nt):
         resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], con)
@@ -322,24 +303,28 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
         the number of time steps. The first time point contains the matrix of
         inputs (sigma).
     """
-    # 0) SECURITY CHECKS
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
-    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
-    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+    # sigma = io_helpers.validate_sigma()
 
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    # if sigma is None: sigma_matrix = np.identity(N, dtype=float)
+    # elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
+    #
+    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if con.dtype != np.float64:    sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
-    # 1.1) Define some helper parameters
     nt = int(tmax) + 1
-
     # Define the transition probability matrix
     tpmatrix = TransitionMatrix(con, rwcase='simple')
-
     # Define the tensor where responses will be stored
     resp_matrices = np.zeros((nt,N,N), dtype=float)
 
-    # 1.2) Compute the pair-wise response matrices over time
+    # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     resp_matrices[0] = sigma_matrix
     for i_t in range(1,nt):
         resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], tpmatrix)
@@ -398,26 +383,32 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
         the number of time steps. The first time point contains the matrix of
         inputs (sigma).
     """
-    # 0) SECURITY CHECKS
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
-    if sigma is None: sigma_matrix = np.identity(N, dtype=float)
-    elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
-    else: sigma_matrix = sigma
+    # sigma = io_helpers.validate_sigma()
 
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
+    # if sigma is None:
+    #     sigma_matrix = np.identity(N, dtype=float)
+    # elif len(np.shape(sigma)) == 1:
+    #     sigma_matrix = sigma * np.identity(N, dtype=float)
+    # else:
+    #     sigma_matrix = sigma
+
+    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if sigma.dtype != np.float64:    sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
-    # 1.1) Define some helper parameters
     nt = int(tmax / timestep) + 1
     # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
     sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
-
     # Define the tensor where responses will be stored
     resp_matrices = np.zeros((nt,N,N), dtype=float )
 
-    # 1.2) Compute the pair-wise response matrices over time
+    # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     if sigma is None:
         # Do the calculation a bit faster for the default unit inputs
         for i_t in range(nt):
@@ -503,31 +494,37 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
         (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
         the number of time steps.
     """
-    # 0) SECURITY CHECKS
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
+    tau = io_helpers.validate_tau(tau, N)
+    # sigma = io_helpers.validate_sigma()
 
-    if sigma is None: sigma = np.identity(N, dtype=float)
-    elif len(np.shape(sigma)) == 1: sigma = sigma * np.identity(N, dtype=float)
+    # if sigma is None:
+    #     sigma_matrix = np.identity(N, dtype=float)
+    # elif len(np.shape(sigma)) == 1:
+    #     sigma_matrix = sigma * np.identity(N, dtype=float)
+    # else:
+    #     sigma_matrix = sigma
 
-    # TODO: Add validation of tau. Constant or vector
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:     con = con.astype(np.float64)
+    if tau.dtype != np.float64:     tau = tau.astype(np.float64)
+    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
 
     caselist = ['regressed', 'full', 'intrinsic']
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
 
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
 
     # 1) CALCULATE THE JACOBIAN MATRIX
     jac = JacobianMOU(con, tau)
     jacdiag = np.diagonal(jac)
 
-    # 1) CALCULATE THE RESPONSE MATRICES
+    # 2) CALCULATE THE RESPONSE MATRICES
     # 2.1) Calculate the extrinsic flow over integration time
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
-
     resp_matrices = np.zeros((nt,N,N), dtype=float)
 
     if case == 'regressed':
@@ -619,21 +616,27 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
         (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
         the number of time steps.
     """
-    # 0) SECURITY CHECKS
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
+    # sigma = io_helpers.validate_sigma()
 
-    if sigma is None: sigma = np.identity(N, dtype=float)
-    elif len(np.shape(sigma)) == 1: sigma = sigma * np.identity(N, dtype=float)
+    # if sigma is None:
+    #     sigma_matrix = np.identity(N, dtype=float)
+    # elif len(np.shape(sigma)) == 1:
+    #     sigma_matrix = sigma * np.identity(N, dtype=float)
+    # else:
+    #     sigma_matrix = sigma
 
-    # TODO: Add validation of tau. Constant or vector
+    # Ensure all arrays are of same dtype (float64)
+    if con.dtype != np.float64:     con = con.astype(np.float64)
+    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
+
 
     caselist = ['regressed', 'full', 'intrinsic']
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
 
-    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-    if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
 
     # 1) CALCULATE THE JACOBIAN MATRIX
     # NOTE: The graph Laplacian is the Jacobian matrix of the linear propagation
@@ -646,7 +649,6 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
     # 2.1) Calculate the extrinsic flow over integration time
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
-
     resp_matrices = np.zeros((nt,N,N), dtype=float)
 
     if case == 'regressed':
