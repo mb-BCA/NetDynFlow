@@ -37,7 +37,7 @@ import numbers
 # Third party packages
 import numpy as np
 # Local imports from NetDynFlow
-# from .import io_helpers
+from . import io_helpers
 
 
 
@@ -67,18 +67,16 @@ def DiscreteCascade(con, X0, tmax=10):
     Xt : ndarray of rank-2
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
     """
-    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
-    # Check the times
-    if not isinstance(tmax, numbers.Number):
-        raise ValueError( "'tmax' should be a number" )
-    # Check the connectivity matrix
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
-    # Ensure all arrays are of same dtype (np.float64)
+    X0 = io_helpers.validate_X0(X0, N)
+
+    # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
-    N = len(con)
     # Tanspose the connectivity matrix
     conT = np.copy(con.T, order='C')
     # Initialise the output array and enter the initial conditions
@@ -119,13 +117,12 @@ def RandomWalk(con, X0, tmax=10):
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
         Xt[0] corresponds to the initial conditions.
     """
-    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
-    # Check the times
-    if not isinstance(tmax, numbers.Number):
-        raise ValueError( "'tmax' should be a number" )
-    # Check the connectivity matrix
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
-    # Ensure all arrays are of same dtype (np.float64)
+    X0 = io_helpers.validate_X0(X0, N)
+
+    # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
 
@@ -134,7 +131,6 @@ def RandomWalk(con, X0, tmax=10):
     N = len(con)
     Tmat = con / con.sum(axis=0)    # Assumes Aij = 1 if i -> j
     # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
-
     # Initialise the output array and enter the initial conditions
     Xt = np.zeros((tmax+1,N), np.float64)
     Xt[0] = X0
@@ -170,7 +166,7 @@ def ContinuousCascade(con, X0, noise=None, tmax=10, timestep=0.01):
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tmax*timestep+1) and N is the number of nodes.
+        (nt, N), where nt = int(tmax*timestep+1) and N is the number of nodes.
     tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
     timestep : scalar (optional)
@@ -179,53 +175,45 @@ def ContinuousCascade(con, X0, noise=None, tmax=10, timestep=0.01):
     Returns
     -------
     Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tmax*timestep) + 1.
+        Time-courses of the N nodes. A numpy array of shape (nt, N),
+        where nt = int(tmax*timestep) + 1.
     """
-    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
-    # Check the times
-    if not isinstance(tmax, numbers.Number):
-        raise ValueError( "'tmax' should be a number" )
-    if not isinstance(timestep, numbers.Number):
-        raise ValueError( "'timestep' should be a number" )
-    # Calculate the simulation length
-    nsteps = int(tmax / timestep) + 1
-
-    # Check the connectivity matrix
+    # 0) HANDLE AND CHECK THE INPUTS
+    io_helpers.validate_con(con)
     N = len(con)
+    X0 = io_helpers.validate_X0(X0, N)
+    noise = io_helpers.validate_noise(noise, N,tmax,timestep)
 
-    # Handle the noise input.
-    if noise is None:
-        # If nothing given by user, set noise to zeros.
-        noise = np.zeros((nsteps,N), dtype=np.float64)
-    elif isinstance(noise, np.ndarray): pass
-    elif isinstance(noise, (list, tuple)):
-        # If array-like, convert to ndarray
-        noise = np.array(noise, np.float64)
-    else:
-        raise TypeError( "'noise' should be either None or a 2D array-like of shape (nsteps,N)." )
-
-    # Ensure all arrays are of same dtype (np.float64)
+    # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
-    if noise.dtype != np.float64:  noise = noise.astype(np.float64)
+    if noise is not None and noise.dtype != np.float64:
+        noise = noise.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
     # Transpose the connectivity matrix
     conT = np.copy(con.T, order='C')
-
     # Initialise the output array
-    Xdot = np.zeros((nsteps, N), np.float64, order='C')
+    nt = int(tmax / timestep) + 1
+    Xdot = np.zeros((nt, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,nsteps):
-        Xpre = Xdot[t-1]
-        # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre)
-        # Integration step
-        Xdot[t] = Xpre + timestep * xcoup + noise[t]
+    if noise is None:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * xcoup #+ noise[t]
+    else:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * xcoup + noise[t]
 
     return Xdot
 
@@ -260,7 +248,7 @@ def LeakyCascade(con, X0, tau, noise=None, tmax=10, timestep=0.01):
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tmax*timestep+1) and N is the number of nodes.
+        (nt, N), where nt = int(tmax*timestep)+1 and N is the number of nodes.
     tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
     timestep : scalar (optional)
@@ -269,69 +257,49 @@ def LeakyCascade(con, X0, tau, noise=None, tmax=10, timestep=0.01):
     Returns
     -------
     Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tmax*timestep) + 1.
+        Time-courses of the N nodes. A numpy array of shape (nt, N),
+        where nt = int(tmax*timestep) + 1.
     """
-    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
-    # Check the times
-    if not isinstance(tmax, numbers.Number):
-        raise ValueError( "'tmax' should be a number" )
-    if not isinstance(timestep, numbers.Number):
-        raise ValueError( "'timestep' should be a number" )
-    # Calculate the simulation length
-    nsteps = int(tmax / timestep) + 1
-
-    # Check the connectivity matrix
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    io_helpers.validate_con(con)
     N = len(con)
-
-    # Check whether tau is given as an scalar or an ndarray
-    if isinstance(tau, np.ndarray): pass
-    elif isinstance(tau, numbers.Number):
-        # If scalar, give same value to all nodes
-        tau = tau * np.ones(N, np.float64)
-    elif isinstance(tau, (list,tuple)):
-        # If array-like, convert to ndarray
-        tau = np.array(tau, np.float64)
-    else:
-        raise TypeError( "'tau' should be either a scalar or 1D array-like of length N." )
-
-    # Handle the noise input.
-    if noise is None:
-        # If nothing given by user, set noise to zeros.
-        noise = np.zeros((nsteps,N), dtype=np.float64)
-    elif isinstance(noise, np.ndarray): pass
-    elif isinstance(noise, (list, tuple)):
-        # If array-like, convert to ndarray
-        noise = np.array(noise, np.float64)
-    else:
-        raise TypeError( "'noise' should be either None or a 2D array-like of shape (nsteps,N)." )
+    X0 = io_helpers.validate_X0(X0, N)
+    tau = io_helpers.validate_tau(tau, N)
+    noise = io_helpers.validate_noise(noise, N,tmax,timestep)
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
-    if tau.dtype != np.float64:     tau = tau.astype(np.float64)
-    if noise.dtype != np.float64:  noise = noise.astype(np.float64)
-
+    if tau.dtype != np.float64:    tau = tau.astype(np.float64)
+    if noise is not None and noise.dtype != np.float64:
+        noise = noise.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
     # Transpose the connectivity matrix
     conT = np.copy(con.T, order='C')
     # Conver the time-constants into decay rations
     alphas = 1./tau
-
     # Initialise the output array
-    # nsteps = int(tmax / timestep) + 1
-    Xdot = np.zeros((nsteps, N), np.float64, order='C')
+    nt = int(tmax / timestep) + 1
+    Xdot = np.zeros((nt, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,nsteps):
-        Xpre = Xdot[t-1]
-        # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre)
-        # Integration step
-        Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + xcoup ) + noise[t]
+    if noise is None:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + xcoup ) #+ noise[t]
+    else:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * ( -1.0*alphas * Xpre + xcoup ) + noise[t]
 
     return Xdot
 
@@ -362,7 +330,7 @@ def ContinuousDiffusion(con, X0, noise=None, tmax=10, timestep=0.01):
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nsteps, N), where nsteps = int(tmax*timestep) + 1 and N is the number of nodes.
+        (nt, N), where nt = int(tmax*timestep) + 1 and N is the number of nodes.
     tmax : scalar (optional)
         The duration of the simulation in arbitrary time units.
     timestep : scalar (optional)
@@ -371,56 +339,49 @@ def ContinuousDiffusion(con, X0, noise=None, tmax=10, timestep=0.01):
     Returns
     -------
     Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nsteps, N),
-        where nsteps = int(tmax*timestep) + 1.
+        Time-courses of the N nodes. A numpy array of shape (nt, N),
+        where nt = int(tmax*timestep) + 1.
     """
-    # 0) SECURITY CHECKS AND HANDLE THE INPUTS
-    # Check the times
-    if not isinstance(tmax, numbers.Number):
-        raise ValueError( "'tmax' should be a number" )
-    if not isinstance(timestep, numbers.Number):
-        raise ValueError( "'timestep' should be a number" )
-    # Calculate the simulation length
-    nsteps = int(tmax / timestep) + 1
-
-    # Check the connectivity matrix
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    io_helpers.validate_con(con)
     N = len(con)
+    X0 = io_helpers.validate_X0(X0, N)
+    noise = io_helpers.validate_noise(noise, N,tmax,timestep)
 
-    # Handle the noise input.
-    if noise is None:
-        # If nothing given by user, set noise to zeros.
-        noise = np.zeros((nsteps,N), dtype=np.float64)
-    elif isinstance(noise, np.ndarray): pass
-    elif isinstance(noise, (list, tuple)):
-        # If array-like, convert to ndarray
-        noise = np.array(noise, np.float64)
-    else:
-        raise TypeError( "'noise' should be either None or a 2D array-like of shape (nsteps,N)." )
-
-    # Ensure all arrays are of same dtype (np.float64)
+    # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
-    if noise.dtype != np.float64:  noise = noise.astype(np.float64)
+    if noise is not None and noise.dtype != np.float64:
+        noise = noise.astype(np.float64)
 
     # 1) PREPARE FOR THE SIMULATION
     # Transpose the connectivity matrix
     conT = np.copy(con.T, order='C')
     ink = conT.sum(axis=1)
     # Lmat = - ink * np.identity(N, dtype=np.float64) + conT
-
     # Initialise the output array
-    Xdot = np.zeros((nsteps, N), np.float64, order='C')
+    nt = int(tmax / timestep) + 1
+    Xdot = np.zeros((nt, N), np.float64, order='C')
     # Enter the initial conditions
     Xdot[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,nsteps):
-        Xpre = Xdot[t-1]
-        # Calculate the input to nodes due to couplings
-        xcoup = np.dot(conT,Xpre) - ink * Xpre
-        # xcoup = np.dot(Lmat, Xpre)
-        # Integration step
-        Xdot[t] = Xpre + timestep * xcoup + noise[t]
+    if noise in None:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre) - ink * Xpre
+            # xcoup = np.dot(Lmat, Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * xcoup #+ noise[t]
+    else:
+        for t in range(1,nt):
+            Xpre = Xdot[t-1]
+            # Calculate the input to nodes due to couplings
+            xcoup = np.dot(conT,Xpre) - ink * Xpre
+            # xcoup = np.dot(Lmat, Xpre)
+            # Integration step
+            Xdot[t] = Xpre + timestep * xcoup + noise[t]
 
     return Xdot
 
