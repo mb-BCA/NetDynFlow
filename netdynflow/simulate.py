@@ -61,12 +61,12 @@ def DiscreteCascade(con, X0=1, tmax=10):
         'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
         Default value, X0 = 1.0. If a 1d-array is entered, each node i is
         assigned initial value X0[i].
-    tmax : integer, (optional)
-        The duration of the simulation in arbitrary time units.
+    tmax : integer, optional
+        The duration of the simulation, discrete time steps.
 
     Returns
     -------
-    Xt : ndarray (2d) of shape (tmax+1,N)
+    Xt : ndarray (2d)
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
     """
     # 0) HANDLE AND CHECK THE INPUTS
@@ -112,14 +112,13 @@ def RandomWalk(con, X0=1, tmax=10):
         entered, 'X0 = c', all nodes are initialised with c walkers (same
         initial conditions). Default value, X0 = 1.0. If a 1d-array is entered,
         X0[i] walkers are initialised at each node.
-    tmax : integer. (optional)
-        The duration of the simulation in arbitrary time units.
+    tmax : integer, optional
+        The duration of the simulation, discrete time steps.
 
     Returns
     -------
-    Xt : ndarray of rank-2
+    Xt : ndarray (2d)
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
-        Xt[0] corresponds to the initial conditions.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -173,10 +172,10 @@ def ContinuousCascade(con, X0=1, noise=None, tmax=10, timestep=0.01):
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
         (nt, N), where nt = int(tmax*timestep+1) and N is the number of nodes.
-    tmax : scalar (optional)
+    tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
-    timestep : scalar (optional)
-        The time-step of the numerical integration.
+    timestep : scalar, optional
+        Time-step of the numerical integration.
 
     Returns
     -------
@@ -257,10 +256,10 @@ def LeakyCascade(con, X0=1, tau, noise=None, tmax=10, timestep=0.01):
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
         (nt, N), where nt = int(tmax*timestep)+1 and N is the number of nodes.
-    tmax : scalar (optional)
+    tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
-    timestep : scalar (optional)
-        The time-step of the numerical integration.
+    timestep : scalar, optional
+        Time-step of the numerical integration.
 
     Returns
     -------
@@ -341,10 +340,10 @@ def ContinuousDiffusion(con, X0=1, noise=None, tmax=10, timestep=0.01):
         for the applications of the model-based network analysis. Left optional
         for general purposes. If given, 'noise' shall be a numpy array of shape
         (nt, N), where nt = int(tmax*timestep) + 1 and N is the number of nodes.
-    tmax : scalar (optional)
+    tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
-    timestep : scalar (optional)
-        The time-step of the numerical integration.
+    timestep : scalar, optional
+        Time-step of the numerical integration.
 
     Returns
     -------
