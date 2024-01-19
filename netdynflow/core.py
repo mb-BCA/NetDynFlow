@@ -58,15 +58,12 @@ dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 import numpy as np
 import numpy.linalg
 import scipy.linalg
+# Local imports from NetDynFlow
+from . import io_helpers
 
 # __all__ = ['JacobianMOU', 'DynFlow', 'FullFlow', 'IntrinsicFlow']
 
-
-# REORGANISE THIS MODULE TO GENERATE THE RESPONSE MATRICES FOR THE FIVE
-# CANONICAL MODELS. FOR THE LEAKY-CASCADE AND THE CONTINUOUS DIFFUSION,
-# PROVIDE THE OPTIONS TO COMPUTE THE GREEN'S FUNCTION, THE ONE REGRESSING THE
-# DIAGONALS, AND THE RESPONSES ONLY DUE TO THE DIAGONALS. FIND PROPER NAMES
-# FOR THOSE CASES.
+# FIND PROPER NAMES FOR THESE FUNCTIONS !!
 
 ## USEFUL FUNCTIONS ##########################################################
 def TransitionMatrix(con, rwcase='simple'):
