@@ -167,11 +167,12 @@ def ContinuousCascade(con, X0=1, noise=None, tmax=10, timestep=0.01):
         'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
         Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
         assigned initial value X0[i].
-    noise : ndarray of rank-2 (optional)
-        A precomputed noisy input to all nodes. Optional parameter. Not needed
-        for the applications of the model-based network analysis. Left optional
-        for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nt, N), where nt = int(tmax*timestep+1) and N is the number of nodes.
+    noise : None, scalar or ndarray (2d) of shape (nt,N), optional
+        Additive noise. If 'noise = None' simulation is run without noise.
+        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
+        zero and variance 'c' is applied to all nodes. Independent for each node.
+        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
+        noise signals. Notice that nt = int(tmax*timestep) + 1.
     tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
     timestep : scalar, optional
@@ -251,11 +252,12 @@ def LeakyCascade(con, X0=1, tau, noise=None, tmax=10, timestep=0.01):
         (e.g., tau = 2), then all nodes will be assigned the same value
         (e.g., tau[i] = 2). If an array is entered, then entries tau[i] will be
         considered as the decay time-constant for each node.
-    noise : ndarray of rank-2 (optional)
-        A precomputed noisy input to all nodes. Optional parameter. Not needed
-        for the applications of the model-based network analysis. Left optional
-        for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nt, N), where nt = int(tmax*timestep)+1 and N is the number of nodes.
+    noise : None, scalar or ndarray (2d) of shape (nt,N), optional
+        Additive noise. If 'noise = None' simulation is run without noise.
+        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
+        zero and variance 'c' is applied to all nodes. Independent for each node.
+        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
+        noise signals. Notice that nt = int(tmax*timestep) + 1.
     tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
     timestep : scalar, optional
@@ -335,11 +337,12 @@ def ContinuousDiffusion(con, X0=1, noise=None, tmax=10, timestep=0.01):
         'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
         Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
         assigned initial value X0[i].
-    noise : ndarray of rank-2 (optional)
-        A precomputed noisy input to all nodes. Optional parameter. Not needed
-        for the applications of the model-based network analysis. Left optional
-        for general purposes. If given, 'noise' shall be a numpy array of shape
-        (nt, N), where nt = int(tmax*timestep) + 1 and N is the number of nodes.
+    noise : None, scalar or ndarray (2d) of shape (nt,N), optional
+        Additive noise. If 'noise = None' simulation is run without noise.
+        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
+        zero and variance 'c' is applied to all nodes. Independent for each node.
+        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
+        noise signals. Notice that nt = int(tmax*timestep) + 1.
     tmax : scalar, optional
         The duration of the simulation in arbitrary time units.
     timestep : scalar, optional
