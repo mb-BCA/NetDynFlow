@@ -77,8 +77,8 @@ def TransitionMatrix(con, rwcase='simple'):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     rwcase : string (optional)
         Default 'simple' returns the transition probability matrix for the
         simple random walk.
@@ -121,8 +121,8 @@ def JacobianMOU(con, tau):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     tau : real valued number, or ndarray of rank-1
         The decay rate at the nodes. Positive values expected.
         If a number is given, then the function considers all nodes have same
@@ -155,8 +155,8 @@ def LaplacianMatrix(con, normed=False):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     normed : boolean (optional)
         If True, it returns the normalised graph Laplacian.
 
@@ -211,8 +211,8 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     sigma : None or ndarray of rank-1 (optional)
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0
@@ -282,8 +282,8 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     sigma : None or ndarray of rank-1 (optional)
         The number of walkers per node initially seeded.
         - The default value 'sigma=None' begins with one walker at each node.
@@ -352,8 +352,8 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0
@@ -454,8 +454,8 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     tau : real valued number or ndarray of rank-1
         The decay time-constants of the nodes. A 1D array of length N.
         If a number is given, then the function considers all nodes have same
@@ -582,8 +582,8 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
 
     Parameters
     ----------
-    con : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0

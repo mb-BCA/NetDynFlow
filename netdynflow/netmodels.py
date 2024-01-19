@@ -77,8 +77,8 @@ def ShuffleLinkWeights(con):
 
     Parameters
     ----------
-    con : ndarray
-        Adjacency matrix of the (weighted) network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
 
     Returns
     -------
@@ -131,8 +131,8 @@ def RandomiseWeightedNetwork(con):
 
     Parameters
     ----------
-    con : ndarray
-        Adjacency matrix of the (weighted) network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
 
     Returns
     -------
@@ -226,8 +226,8 @@ def SpatialWeightSorting(con, distmat, descending=True):
 
     Parameters
     ----------
-    con : ndarray, rank-2.
-        Adjacency matrix of the (weighted) network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     distmat : ndarray, rank-2.
         A matrix containing the spatial distance between all pair of ROIs.
         This can be either the euclidean distance, the fiber length or any
@@ -296,8 +296,8 @@ def SpatialLatticeFromNetwork(con, distmat, descending=True):
 
     Parameters
     ----------
-    con : ndarray, rank-2.
-        Adjacency matrix of the (weighted) network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     distmat : ndarray, rank-2.
         A matrix containing the spatial distance between all pair of ROIs.
         This can be either the euclidean distance, the fiber length or any

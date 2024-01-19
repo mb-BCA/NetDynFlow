@@ -104,15 +104,15 @@ def tNN2NNt(tensor):
     newtensor = np.transpose(tensor, axes=(1,2,0))
     return newtensor
 
-def Reciprocity(adjmatrix):
+def Reciprocity(con):
     """Computes the fraction of reciprocal links to total number of links.
 
     Both weighted and unweighted input matrices are permitted. Weights
     are ignored for the calculation.
     Parameters
     ----------
-    adjmatrix : ndarray of rank-2
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     Returns
     -------
     reciprocity : float

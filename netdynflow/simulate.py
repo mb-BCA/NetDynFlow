@@ -55,7 +55,7 @@ def DiscreteCascade(con, X0=1.0, tmax=10):
     Parameters
     ----------
     con : ndarray (2d) of shape (N,N).
-        The adjacency matrix of the network.
+        The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
         The initial conditions of the nodes. If a scalar value is entered
         (e.g., X0 = , Entries X0[i] are the inital values of the nodes.
@@ -104,8 +104,8 @@ def RandomWalk(con, X0=1.0, tmax=10):
 
     Parameters
     ----------
-    con : ndarray of rank-2, and shape (N,N).
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     X0 : ndarray of rank-1, and length N.
         The initial conditions. Entries X0[i] are the number of walkers
         starting at each node.
@@ -158,8 +158,8 @@ def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     Parameters
     ----------
-    con : ndarray of rank-2, and shape (N,N).
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     X0 : ndarray of rank-1, and length N.
         The initial conditions. Entries X0[i] are the inital values of the nodes.
         They can be either positive or negative, real or integer values.
@@ -235,8 +235,8 @@ def LeakyCascade(con, X0=1.0, tau, noise=None, tmax=10, timestep=0.01):
 
     Parameters
     ----------
-    con : ndarray of rank-2, and shape (N,N).
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     X0 : ndarray of rank-1, and length N.
         The initial conditions. Entries X0[i] are the inital values of the nodes.
         They can be either positive or negative, real or integer values.
@@ -322,8 +322,8 @@ def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     Parameters
     ----------
-    con : ndarray of rank-2, and shape (N,N).
-        The adjacency matrix of the network.
+    con : ndarray (2d) of shape (N,N).
+        The connectivity matrix of the network.
     X0 : ndarray of rank-1, and length N.
         The initial conditions. Entries X0[i] are the inital values of the nodes.
         They can be either positive or negative, real or integer values.
