@@ -79,7 +79,7 @@ def TransitionMatrix(con, rwcase='simple'):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    rwcase : string (optional)
+    rwcase : string, optional
         Default 'simple' returns the transition probability matrix for the
         simple random walk.
         NOTE: For now only the simple random walk is supported. Optional
@@ -89,7 +89,7 @@ def TransitionMatrix(con, rwcase='simple'):
     Returns
     -------
     tp_matrix : ndarray of rank-2
-        The transition probability matrix of shape N x N.
+        The transition probability matrix of shape (N,N).
     """
 
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
@@ -123,16 +123,16 @@ def JacobianMOU(con, tau):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    tau : real valued number, or ndarray of rank-1
-        The decay rate at the nodes. Positive values expected.
-        If a number is given, then the function considers all nodes have same
-        decay rate. Alternatively, an array can be inputed with the decay rate
-        of each node.
+    tau : real value or ndarray (1d) of length N.
+        The decay time-constants of the nodes. If a scalar value is entered,
+        `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
+        (identical nodes). If an 1d-array is entered, each node i is assigned
+        decay time-constant `tau[i]`.
 
     Returns
     -------
-    jac : ndarray of rank-2
-        The Jacobian matrix of shape N x N for the MOU dynamical system.
+    jac : ndarray (2d) of shape (N,N)
+        The Jacobian matrix for the MOU dynamical system.
     """
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
@@ -157,13 +157,13 @@ def LaplacianMatrix(con, normed=False):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    normed : boolean (optional)
+    normed : boolean, optional
         If True, it returns the normalised graph Laplacian.
 
     Returns
     -------
-    lap : ndarray of rank-2
-        The graph Laplacian matrix of shape N x N.
+    lap : ndarray (2d) of shape(N,N)
+        The graph Laplacian matrix.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -185,6 +185,7 @@ def LaplacianMatrix(con, normed=False):
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
+## DISCRETE-TIME CANONICAL MODELS #############################################
 
 # TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
 
@@ -213,18 +214,18 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : None or ndarray of rank-1 (optional)
+    sigma : None, ndarray (1d) of lenght N or narray (2d) of shape (N,N), optional
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0
         to all nodes.
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
+    tmax : integer, optional
+        The duration of the simulation, discrete time steps.
 
     Returns
     -------
-    resp_matrices : ndarray of rank-3
+    resp_matrices : ndarray (3d) of shape (nt,N,N)
         Temporal evolution of the pair-wise responses. A tensor of shape
         (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
         the number of time steps. The first time point contains the matrix of
@@ -289,8 +290,8 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
         - The default value 'sigma=None' begins with one walker at each node.
         - If a vector v of length N is entered, each node will be initialised
         with the number of walkers given in v_i.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
+    tmax : integer, optional
+        The duration of the simulation, discrete time steps.
 
     Returns
     -------
@@ -329,6 +330,8 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
 
     return resp_matrices
 
+
+## CONTINUOUS-TIME CANONICAL MODELS ###########################################
 def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
     """Computes the pair-wise responses over time for the continuous cascade model.
 
@@ -366,11 +369,10 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
         case is left available for situations in which the system is interpreted
         as the multivariate Ornstein-Uhlenbeck process, which is the same
         equation but with additive Gaussian noise applied on the nodes.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
-    timestep : real valued number, positive (optional)
-        Sampling time-step.
-        Warning - Not an integration step, just the desired sampling rate.
+    tmax : scalar, optional
+        Duration of the simulation, arbitrary time units.
+    timestep : scalar, optional
+        Temporal step (resolution) between consecutive calculations of responses.
 
     Returns
     -------
@@ -379,6 +381,10 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
         (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
         the number of time steps. The first time point contains the matrix of
         inputs (sigma).
+
+    NOTE
+    ----
+    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -456,11 +462,11 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    tau : real valued number or ndarray of rank-1
-        The decay time-constants of the nodes. A 1D array of length N.
-        If a number is given, then the function considers all nodes have same
-        decay rate. Alternatively, an array can be inputed with the decay rate
-        of each node.
+    tau : real value or ndarray (1d) of length N.
+        The decay time-constants of the nodes. If a scalar value is entered,
+        `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
+        (identical nodes). If an 1d-array is entered, each node i is assigned
+        decay time-constant `tau[i]`.
     sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
         The covariance matrix of the inputs.
         - The default value 'sigma=None' applies an input of amplitude 1.0
@@ -473,11 +479,10 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
         case is left available for situations in which the system is interpreted
         as the multivariate Ornstein-Uhlenbeck process, which is the same
         equation but with additive Gaussian noise applied on the nodes.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
-    timestep : real valued number, positive (optional)
-        Sampling time-step.
-        Warning - Not an integration step, just the desired sampling rate.
+    tmax : scalar, optional
+        Duration of the simulation, arbitrary time units.
+    timestep : scalar, optional
+        Temporal step (resolution) between consecutive calculations of responses.
     case : string (optional)
         TODO: WRITE ME HERE !!
     normed : boolean (optional)
@@ -490,6 +495,10 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
         Temporal evolution of the pair-wise responses. A tensor of shape
         (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
         the number of time steps.
+
+    NOTE
+    ----
+    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -596,11 +605,10 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
         case is left available for situations in which the system is interpreted
         as the multivariate Ornstein-Uhlenbeck process, which is the same
         equation but with additive Gaussian noise applied on the nodes.
-    tmax : real valued number, positive (optional)
-        Final time for integration.
-    timestep : real valued number, positive (optional)
-        Sampling time-step.
-        Warning - Not an integration step, just the desired sampling rate.
+    tmax : scalar, optional
+        Duration of the simulation, arbitrary time units.
+    timestep : scalar, optional
+        Temporal step (resolution) between consecutive calculations of responses.
     case : string (optional)
         TODO: WRITE ME HERE !!
     normed : boolean (optional)
@@ -612,6 +620,10 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
         Temporal evolution of the pair-wise responses. A tensor of shape
         (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
         the number of time steps.
+
+    NOTE
+    ----
+    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
