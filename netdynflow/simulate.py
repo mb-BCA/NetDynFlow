@@ -57,15 +57,16 @@ def DiscreteCascade(con, X0=1.0, tmax=10):
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
-        The initial conditions of the nodes. If a scalar value is entered
-        (e.g., X0 = , Entries X0[i] are the inital values of the nodes.
-        They can be either positive or negative, real or integer values.
+        Initial values of the nodes at time t = 0. If scalar value is entered,
+        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
+        Default value, X0 = 1.0. If a 1d-array is entered, each node i is
+        assigned initial value X0[i].
     tmax : integer, (optional)
         The duration of the simulation in arbitrary time units.
 
     Returns
     -------
-    Xt : ndarray of rank-2
+    Xt : ndarray (2d) of shape (tmax+1,N)
         Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
     """
     # 0) HANDLE AND CHECK THE INPUTS
@@ -106,9 +107,11 @@ def RandomWalk(con, X0=1.0, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    X0 : ndarray of rank-1, and length N.
-        The initial conditions. Entries X0[i] are the number of walkers
-        starting at each node.
+    X0 : scalar or ndarray (1d) of length N, optional
+        Number of walkers (agents) starting at each node. If scalar value is
+        entered, 'X0 = c', all nodes are initialised with c walkers (same
+        initial conditions). Default value, X0 = 1.0. If a 1d-array is entered,
+        X0[i] walkers are initialised at each node.
     tmax : integer. (optional)
         The duration of the simulation in arbitrary time units.
 
@@ -160,9 +163,11 @@ def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    X0 : ndarray of rank-1, and length N.
-        The initial conditions. Entries X0[i] are the inital values of the nodes.
-        They can be either positive or negative, real or integer values.
+    X0 : scalar or ndarray (1d) of length N, optional
+        Initial values of the nodes at time t = 0. If scalar value is entered,
+        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
+        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
+        assigned initial value X0[i].
     noise : ndarray of rank-2 (optional)
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
@@ -237,9 +242,11 @@ def LeakyCascade(con, X0=1.0, tau, noise=None, tmax=10, timestep=0.01):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    X0 : ndarray of rank-1, and length N.
-        The initial conditions. Entries X0[i] are the inital values of the nodes.
-        They can be either positive or negative, real or integer values.
+    X0 : scalar or ndarray (1d) of length N, optional
+        Initial values of the nodes at time t = 0. If scalar value is entered,
+        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
+        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
+        assigned initial value X0[i].
     tau : real value or ndarray of rank-1 and length N.
         The decay time-constants of the nodes. If a single number is entered
         (e.g., tau = 2), then all nodes will be assigned the same value
@@ -324,9 +331,11 @@ def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    X0 : ndarray of rank-1, and length N.
-        The initial conditions. Entries X0[i] are the inital values of the nodes.
-        They can be either positive or negative, real or integer values.
+    X0 : scalar or ndarray (1d) of length N, optional
+        Initial values of the nodes at time t = 0. If scalar value is entered,
+        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
+        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
+        assigned initial value X0[i].
     noise : ndarray of rank-2 (optional)
         A precomputed noisy input to all nodes. Optional parameter. Not needed
         for the applications of the model-based network analysis. Left optional
