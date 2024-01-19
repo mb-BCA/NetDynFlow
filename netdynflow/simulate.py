@@ -58,9 +58,9 @@ def DiscreteCascade(con, X0=1, tmax=10):
         The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
         Initial values of the nodes at time t = 0. If scalar value is entered,
-        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
-        Default value, X0 = 1.0. If a 1d-array is entered, each node i is
-        assigned initial value X0[i].
+        `X0 = c`, all nodes are initialised as `X0[i] = c` (same initial conditions).
+        Default value, `X0 = 1.0`. If a 1d-array is entered, each node i is
+        assigned initial value `X0[i]`.
     tmax : integer, optional
         The duration of the simulation, discrete time steps.
 
@@ -164,25 +164,31 @@ def ContinuousCascade(con, X0=1, noise=None, tmax=10, timestep=0.01):
         The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
         Initial values of the nodes at time t = 0. If scalar value is entered,
-        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
-        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
-        assigned initial value X0[i].
+        `X0 = c`, all nodes are initialised as `X0[i] = c` (same initial conditions).
+        Default value, `X0 = 1.0`. If a 1d-array is entered, each node i is
+        assigned initial value `X0[i]`.
     noise : None, scalar or ndarray (2d) of shape (nt,N), optional
-        Additive noise. If 'noise = None' simulation is run without noise.
-        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
-        zero and variance 'c' is applied to all nodes. Independent for each node.
-        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
-        noise signals. Notice that nt = int(tmax*timestep) + 1.
+        Additive noise. If `noise = None` simulation is run without noise.
+        If scalar `noise = c`, a Gaussian white noise, centered at zero and
+        variance 'c' is applied to all nodes. Independent for each node.
+        Also, `noise = arr` accepts ndarray (arr) of shape (nt, N) with noise
+        signals precomputed by the user.
     tmax : scalar, optional
-        The duration of the simulation in arbitrary time units.
+        Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
         Time-step of the numerical integration.
 
     Returns
     -------
-    Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nt, N),
-        where nt = int(tmax*timestep) + 1.
+    Xdot : ndarray (2d) of shape (nt,N)
+        Time-courses of the N nodes.
+
+    NOTE
+    ----
+    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    - Simulation runs from t=0 to t=tmax.
+    - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
+    - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -244,30 +250,36 @@ def LeakyCascade(con, X0=1, tau, noise=None, tmax=10, timestep=0.01):
         The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
         Initial values of the nodes at time t = 0. If scalar value is entered,
-        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
-        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
-        assigned initial value X0[i].
+        `X0 = c`, all nodes are initialised as `X0[i] = c` (same initial conditions).
+        Default value, `X0 = 1.0`. If a 1d-array is entered, each node i is
+        assigned initial value `X0[i]`.
     tau : real value or ndarray of rank-1 and length N.
         The decay time-constants of the nodes. If a single number is entered
         (e.g., tau = 2), then all nodes will be assigned the same value
         (e.g., tau[i] = 2). If an array is entered, then entries tau[i] will be
         considered as the decay time-constant for each node.
     noise : None, scalar or ndarray (2d) of shape (nt,N), optional
-        Additive noise. If 'noise = None' simulation is run without noise.
-        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
-        zero and variance 'c' is applied to all nodes. Independent for each node.
-        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
-        noise signals. Notice that nt = int(tmax*timestep) + 1.
+        Additive noise. If `noise = None` simulation is run without noise.
+        If scalar `noise = c`, a Gaussian white noise, centered at zero and
+        variance 'c' is applied to all nodes. Independent for each node.
+        Also, `noise = arr` accepts ndarray (arr) of shape (nt, N) with noise
+        signals precomputed by the user.
     tmax : scalar, optional
-        The duration of the simulation in arbitrary time units.
+        Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
         Time-step of the numerical integration.
 
     Returns
     -------
-    Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nt, N),
-        where nt = int(tmax*timestep) + 1.
+    Xdot : ndarray (2d) of shape (nt,N)
+        Time-courses of the N nodes.
+
+    NOTE
+    ----
+    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    - Simulation runs from t=0 to t=tmax.
+    - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
+    - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
@@ -334,25 +346,31 @@ def ContinuousDiffusion(con, X0=1, noise=None, tmax=10, timestep=0.01):
         The connectivity matrix of the network.
     X0 : scalar or ndarray (1d) of length N, optional
         Initial values of the nodes at time t = 0. If scalar value is entered,
-        'X0 = c', all nodes are initialised as X0[i] = c (same initial conditions).
-        Default value, X0[i] = 1.0. If a 1d-array is entered, each node i is
-        assigned initial value X0[i].
+        `X0 = c`, all nodes are initialised as `X0[i] = c` (same initial conditions).
+        Default value, `X0 = 1.0`. If a 1d-array is entered, each node i is
+        assigned initial value `X0[i]`.
     noise : None, scalar or ndarray (2d) of shape (nt,N), optional
-        Additive noise. If 'noise = None' simulation is run without noise.
-        If scalar 'noise = c' is entered, a Gaussian white noise, centered at
-        zero and variance 'c' is applied to all nodes. Independent for each node.
-        Also, user can enter a (2d) ndarray of shape (nt, N) with precomputed
-        noise signals. Notice that nt = int(tmax*timestep) + 1.
+        Additive noise. If `noise = None` simulation is run without noise.
+        If scalar `noise = c`, a Gaussian white noise, centered at zero and
+        variance 'c' is applied to all nodes. Independent for each node.
+        Also, `noise = arr` accepts ndarray (arr) of shape (nt, N) with noise
+        signals precomputed by the user.
     tmax : scalar, optional
-        The duration of the simulation in arbitrary time units.
+        Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
         Time-step of the numerical integration.
 
     Returns
     -------
-    Xdot : ndarray of rank-2
-        Time-courses of the N nodes. A numpy array of shape (nt, N),
-        where nt = int(tmax*timestep) + 1.
+    Xdot : ndarray (2d) of shape (nt,N)
+        Time-courses of the N nodes.
+
+    NOTE
+    ----
+    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    - Simulation runs from t=0 to t=tmax.
+    - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
+    - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
