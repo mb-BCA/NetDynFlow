@@ -384,7 +384,7 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
 
     NOTE
     ----
-    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -498,7 +498,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
 
     NOTE
     ----
-    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -623,7 +623,7 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
 
     NOTE
     ----
-    WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
