@@ -94,7 +94,8 @@ def TransitionMatrix(con, rwcase='simple'):
 
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
-    if con.dtype != np.float64:    con = con.astype(np.float64)
+    if con.dtype != np.float64:
+        con = con.astype(np.float64)
     N = len(con)
 
     caselist = ['simple']
@@ -189,7 +190,7 @@ def LaplacianMatrix(con, normed=False):
 
 # TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
 
-def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
+def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
     """Computes the pair-wise responses over time for the discrete cascade model.
 
     TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
@@ -214,9 +215,10 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : None, ndarray (1d) of lenght N or narray (2d) of shape (N,N), optional
+    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
+        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
         The covariance matrix of the inputs.
-        - The default value 'sigma=None' applies an input of amplitude 1.0
+        - The default value 'sigma=1.0' applies an input of amplitude 1.0
         to all nodes.
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
@@ -242,8 +244,8 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
     # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
-    if con.dtype != np.float64:    con = con.astype(np.float64)
-    if con.dtype != np.float64:    sigma = sigma.astype(np.float64)
+    if con.dtype != np.float64:     con = con.astype(np.float64)
+    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
     nt = int(tmax) + 1
@@ -259,7 +261,7 @@ def RespMatrices_DiscreteCascade(con, sigma=None, tmax=10):
 
     return resp_matrices
 
-def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
+def RespMatrices_RandomWalk(con, sigma=1.0, tmax=10):
     """Computes the pair-wise responses over time for the simple random walk model.
 
     TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
@@ -285,9 +287,10 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : None or ndarray of rank-1 (optional)
+    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
+        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
         The number of walkers per node initially seeded.
-        - The default value 'sigma=None' begins with one walker at each node.
+        - The default value 'sigma=1.0' begins with one walker at each node.
         - If a vector v of length N is entered, each node will be initialised
         with the number of walkers given in v_i.
     tmax : integer, optional
@@ -312,8 +315,8 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
     # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
-    if con.dtype != np.float64:    con = con.astype(np.float64)
-    if con.dtype != np.float64:    sigma = sigma.astype(np.float64)
+    if con.dtype != np.float64:     con = con.astype(np.float64)
+    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
     nt = int(tmax) + 1
@@ -332,7 +335,7 @@ def RespMatrices_RandomWalk(con, sigma=None, tmax=10):
 
 
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
-def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
+def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
     """Computes the pair-wise responses over time for the continuous cascade model.
 
     TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
@@ -357,9 +360,10 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
+        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
         The covariance matrix of the inputs.
-        - The default value 'sigma=None' applies an input of amplitude 1.0
+        - The default value 'sigma=1.0' applies an input of amplitude 1.0
         to all nodes.
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
@@ -401,8 +405,8 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
     # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
-    if con.dtype != np.float64:    con = con.astype(np.float64)
-    if sigma.dtype != np.float64:    sigma = sigma.astype(np.float64)
+    if con.dtype != np.float64:     con = con.astype(np.float64)
+    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
     nt = int(tmax / timestep) + 1
@@ -429,7 +433,7 @@ def RespMatrices_ContCascade(con, sigma=None, tmax=10, timestep=0.1):
 
     return resp_matrices
 
-def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
+def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the leaky-cascade model.
 
@@ -467,9 +471,10 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
         `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
         (identical nodes). If an 1d-array is entered, each node i is assigned
         decay time-constant `tau[i]`.
-    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
+        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
         The covariance matrix of the inputs.
-        - The default value 'sigma=None' applies an input of amplitude 1.0
+        - The default value 'sigma=1.0' applies an input of amplitude 1.0
         to all nodes.
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
@@ -566,7 +571,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=None, tmax=10, timestep=0.1,
 
     return resp_matrices
 
-def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
+def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the linear diffusive model.
 
@@ -593,9 +598,10 @@ def RespMatrices_ContinuousDiffusion(con, sigma=None, tmax=10, timestep=0.1,
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : None or ndarray of rank-1 or ndarray of rank-2 (optional)
+    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
+        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
         The covariance matrix of the inputs.
-        - The default value 'sigma=None' applies an input of amplitude 1.0
+        - The default value 'sigma=1.0' applies an input of amplitude 1.0
         to all nodes.
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
