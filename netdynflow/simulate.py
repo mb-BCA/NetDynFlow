@@ -82,11 +82,12 @@ def DiscreteCascade(con, X0=1, tmax=10):
     # Tanspose the connectivity matrix
     conT = np.copy(con.T, order='C')
     # Initialise the output array and enter the initial conditions
-    Xt = np.zeros((tmax+1,N), np.float64)
+    nt = int(tmax) + 1
+    Xt = np.zeros((nt,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tmax+1):
+    for t in range(1,nt):
         Xt[t] = np.dot(conT, Xt[t-1])
 
     return Xt
@@ -135,11 +136,12 @@ def RandomWalk(con, X0=1, tmax=10):
     Tmat = con / con.sum(axis=0)    # Assumes Aij = 1 if i -> j
     # Tmat = con / con.sum(axis=1)    # Assumes Aij = 1 if j -> i
     # Initialise the output array and enter the initial conditions
-    Xt = np.zeros((tmax+1,N), np.float64)
+    nt = int(tmax) + 1
+    Xt = np.zeros((nt,N), np.float64)
     Xt[0] = X0
 
     # 2) RUN THE SIMULATION
-    for t in range(1,tmax+1):
+    for t in range(1,nt):
         Xt[t] = np.dot(Tmat, Xt[t-1])
 
     return Xt
