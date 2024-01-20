@@ -66,8 +66,8 @@ def DiscreteCascade(con, X0=1.0, tmax=10):
 
     Returns
     -------
-    Xt : ndarray (2d)
-        Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
+    Xt : ndarray (2d) of shape (tmax+1,N)
+        Time-courses of the N nodes.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
@@ -118,8 +118,9 @@ def RandomWalk(con, X0=1.0, tmax=10):
 
     Returns
     -------
-    Xt : ndarray (2d)
-        Time-courses of the N nodes. A numpy array of shape (tmax+1, N).
+    Xt : ndarray (2d) of shape (tmax+1,N)
+        Time-courses of the N nodes. Xt[t,i] is the expected number of walker
+        in node i at time t.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
