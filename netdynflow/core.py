@@ -223,7 +223,7 @@ def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
         - If a vector v of length N is entered, each node will receive an initial
         input of amplitude v_i.
     tmax : integer, optional
-        The duration of the simulation, discrete time steps.
+        The duration of the simulation, number of discrete time steps.
 
     Returns
     -------
@@ -256,8 +256,8 @@ def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     resp_matrices[0] = sigma_matrix
-    for i_t in range(1,nt):
-        resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], con)
+    for it in range(1,nt):
+        resp_matrices[it] = np.matmul(resp_matrices[it-1], con)
 
     return resp_matrices
 
@@ -327,9 +327,9 @@ def RespMatrices_RandomWalk(con, sigma=1.0, tmax=10):
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     resp_matrices[0] = sigma_matrix
-    for i_t in range(1,nt):
-        resp_matrices[i_t] = np.matmul(resp_matrices[i_t-1], tpmatrix)
-        # resp_matrices[i_t] = np.matmul(tpmatrix, resp_matrices[i_t-1])
+    for it in range(1,nt):
+        resp_matrices[it] = np.matmul(resp_matrices[it-1], tpmatrix)
+        # resp_matrices[it] = np.matmul(tpmatrix, resp_matrices[it-1])
 
     return resp_matrices
 
@@ -418,18 +418,18 @@ def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     if sigma is None:
         # Do the calculation a bit faster for the default unit inputs
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the Green's function at time t.
-            resp_matrices[i_t] = scipy.linalg.expm(con * t)
+            resp_matrices[it] = scipy.linalg.expm(con * t)
     else:
         # Do the calculation if other inputs are entered besides the default
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the Green's function at time t.
             greens_t = scipy.linalg.expm(con * t)
             # Calculate the pair-wise responses at time t.
-            resp_matrices[i_t] = np.dot(sigma_sqrt, greens_t)
+            resp_matrices[it] = np.dot(sigma_sqrt, greens_t)
 
     return resp_matrices
 
@@ -539,30 +539,30 @@ def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
     resp_matrices = np.zeros((nt,N,N), dtype=float)
 
     if case == 'regressed':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+            resp_matrices[it] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
     elif case == 'intrinsic':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jacdiag_t)
+            resp_matrices[it] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'full':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t )
+            resp_matrices[it] = np.dot( sigma_sqrt, jac_t )
 
     # 2.2) Normalise by the scaling factor
     if normed:
@@ -667,30 +667,30 @@ def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
     resp_matrices = np.zeros((nt,N,N), dtype=float)
 
     if case == 'regressed':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+            resp_matrices[it] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
 
     elif case == 'intrinsic':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jacdiag_t)
+            resp_matrices[it] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'full':
-        for i_t in range(nt):
-            t = i_t * timestep
+        for it in range(nt):
+            t = it * timestep
             # Calculate the jaccobian at given time
             jac_t = scipy.linalg.expm(jac * t)
             # Calculate the pair-wise responses at time t
-            resp_matrices[i_t] = np.dot( sigma_sqrt, jac_t )
+            resp_matrices[it] = np.dot( sigma_sqrt, jac_t )
 
     return resp_matrices
 
