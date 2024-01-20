@@ -88,8 +88,8 @@ def TransitionMatrix(con, rwcase='simple'):
 
     Returns
     -------
-    tp_matrix : ndarray of rank-2
-        The transition probability matrix of shape (N,N).
+    tp_matrix : ndarray of rank-2 and shape (N,N).
+        The transition probability matrix.
     """
 
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
@@ -103,8 +103,7 @@ def TransitionMatrix(con, rwcase='simple'):
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
 
     # 1) COMPUTE THE TRANSITION PROBABILITY MATRIX
-    N = con_shape[0]
-    tp_matrix = con.copy().astype(float)
+    tp_matrix = con.copy().astype(np.float64)
     if rwcase=='simple':
         outdegree = con.sum(axis=1)
         for i in range(N):
@@ -221,12 +220,11 @@ def RespMatrices_DiscreteCascade(con, S0=1.0, tmax=10):
 
     Returns
     -------
-    resp_matrices : ndarray (3d) of shape (nt,N,N)
-        Temporal evolution of the pair-wise responses. A tensor of shape
-        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
-        the number of time steps. The first time point contains the matrix of
-        inputs (sigma).
-    """
+    resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
+        Temporal evolution of the pair-wise responses. The first time point
+        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
+        the response of node j at time t, due to an initial perturbation on i.
+     """
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
     N = len(con)
@@ -251,12 +249,8 @@ def RespMatrices_DiscreteCascade(con, S0=1.0, tmax=10):
 
     return resp_matrices
 
-def RespMatrices_RandomWalk(con, sigma=1.0, tmax=10):
+def RespMatrices_RandomWalk(con, S0=1, tmax=10):
     """Computes the pair-wise responses over time for the simple random walk model.
-
-    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
-    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
-    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
 
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the transition probability matrix is computed as
@@ -277,49 +271,44 @@ def RespMatrices_RandomWalk(con, sigma=1.0, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
-        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
-        The number of walkers per node initially seeded.
-        - The default value 'sigma=1.0' begins with one walker at each node.
-        - If a vector v of length N is entered, each node will be initialised
-        with the number of walkers given in v_i.
+    S0 : scalar or ndarray (1d) of length N, optional
+        Number of walkers seed at every node, at time t = 0. If scalar value
+        given, `S0 = c`, all nodes are initialised as `S0[i] = c`.
+        Default, `S0 = 1.0` represents one agent per node. If a 1d-array is
+        given, node i starts with `S0[i]` walkers.
     tmax : integer, optional
-        The duration of the simulation, discrete time steps.
+        The duration of the simulation, number of discrete time steps.
 
     Returns
     -------
-    resp_matrices : ndarray of rank-3
-        Temporal evolution of the pair-wise responses. A tensor of shape
-        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
-        the number of time steps. The first time point contains the matrix of
-        inputs (sigma).
+    resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
+        Temporal evolution of the pair-wise responses. The first time point
+        contains the matrix of inputs. Entry `resp_matrices[t,i,j]` is the
+        response of node j at time t, due to the initial perturbation on i.
     """
-    # 0) HANDLE AND CHECK THE INPUTS
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
     N = len(con)
-    # sigma = io_helpers.validate_sigma()
+    S0 = io_helpers.validate_S0(S0,N)
 
-    # if sigma is None: sigma_matrix = np.identity(N, dtype=float)
-    # elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
-    #
-    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
-    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
+    if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
     # 1) CALCULATE THE RESPONSE MATRICES
-    nt = int(tmax) + 1
     # Define the transition probability matrix
     tpmatrix = TransitionMatrix(con, rwcase='simple')
-    # Define the tensor where responses will be stored
-    resp_matrices = np.zeros((nt,N,N), dtype=float)
+    # Initialise the output array and enter the initial conditions
+    nt = int(tmax) + 1
+    resp_matrices = np.zeros((nt,N,N), dtype=np.float64)
+    # Enter the initial conditions
+    resp_matrices[0][np.diag_indices(N)] = S0
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
-    resp_matrices[0] = sigma_matrix
-    for it in range(1,nt):
-        resp_matrices[it] = np.matmul(resp_matrices[it-1], tpmatrix)
-        # resp_matrices[it] = np.matmul(tpmatrix, resp_matrices[it-1])
+    for t in range(1,nt):
+        resp_matrices[t] = np.matmul(resp_matrices[t-1], tpmatrix)
 
     return resp_matrices
 
