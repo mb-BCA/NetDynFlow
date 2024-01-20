@@ -71,7 +71,26 @@ def validate_X0(a, n_nodes):
     # Make sure 'X0' is a 1D array
     if np.ndim(a) != 1:
         raise ValueError(
-        "'X0' must be 1-dimensional of length N, but shape %s found"
+        "'X0' must be either scalar or 1-dimensional of length N, but shape %s found"
+        %str(np.shape(a)) )
+
+    return a
+
+def validate_S0(a, n_nodes):
+    """
+    """
+    # Make sure 'S0' is a numpy array, of np.float64 dtype
+    if isinstance(a, numbers.Number) and type(a) != bool:
+        a = a * np.ones(n_nodes, np.float64)
+    elif isinstance(a, np.ndarray): pass
+    else:
+        raise TypeError(
+        "'S0' must be either scalar or numpy array, but %s found" %type(a) )
+
+    # Make sure 'X0' is a 1D array
+    if np.ndim(a) != 1:
+        raise ValueError(
+        "'S0' must be either scalar or 1-dimensional of length N, but shape %s found"
         %str(np.shape(a)) )
 
     return a
@@ -90,7 +109,7 @@ def validate_tau(a, n_nodes):
     # Make sure 'tau' is a 1D array
     if np.ndim(a) != 1:
         raise ValueError(
-        "'tau' must be 1-dimensional of length N, but shape %s found"
+        "'tau' must be either scalar or 1-dimensional of length N, but shape %s found"
         %str(np.shape(a)) )
 
     return a
