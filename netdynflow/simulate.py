@@ -188,12 +188,12 @@ def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     NOTE
     ----
-    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    Total number of integration steps (samples) is `nt = int(tmax*timestep) + 1`.
     - Simulation runs from t=0 to t=tmax.
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
-    # 0) HANDLE AND CHECK THE INPUTS
+    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
@@ -279,7 +279,7 @@ def LeakyCascade(con, tau, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     NOTE
     ----
-    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    Total number of integration steps (samples) is `nt = int(tmax*timestep) + 1`.
     - Simulation runs from t=0 to t=tmax.
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
@@ -370,7 +370,7 @@ def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     NOTE
     ----
-    Total number of integration steps (samples) is nt = int(tmax*timestep) + 1.
+    Total number of integration steps (samples) is `nt = int(tmax*timestep) + 1`.
     - Simulation runs from t=0 to t=tmax.
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
