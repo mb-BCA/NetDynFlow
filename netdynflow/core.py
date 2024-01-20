@@ -190,12 +190,8 @@ def LaplacianMatrix(con, normed=False):
 
 # TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
 
-def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
+def RespMatrices_DiscreteCascade(con, S0=1.0, tmax=10):
     """Computes the pair-wise responses over time for the discrete cascade model.
-
-    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
-    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
-    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
 
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the response matrices Rij(t) encode the temporal
@@ -205,7 +201,7 @@ def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
     DISCRETE VARIABLE and DISCRETE TIME in a network. It is represented by
     the following iterative equation:
 
-            x(t+1) = A x(t) .
+            x(t+1) = A x(t)  .
 
     This system is NON-CONSERVATIVE and leads to DIVERGENT dynamics. If all
     entries of A are positive, e.g, A is a binary graph, the both the solutions
@@ -215,13 +211,11 @@ def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
-        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
-        The covariance matrix of the inputs.
-        - The default value 'sigma=1.0' applies an input of amplitude 1.0
-        to all nodes.
-        - If a vector v of length N is entered, each node will receive an initial
-        input of amplitude v_i.
+    S0 : scalar or ndarray (1d) of length N, optional
+        Amplitude of the stimuli applied to nodes at time t = 0.
+        If scalar value given, `S0 = c`, all nodes are initialised as `S0[i] = c`
+        Default, `S0 = 1.0` represents a unit perturbation to all nodes.
+        If a 1d-array is given, node i receives initial stimulus `S0[i]`.
     tmax : integer, optional
         The duration of the simulation, number of discrete time steps.
 
@@ -236,28 +230,24 @@ def RespMatrices_DiscreteCascade(con, sigma=1.0, tmax=10):
     # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
     io_helpers.validate_con(con)
     N = len(con)
-    # sigma = io_helpers.validate_sigma()
+    S0 = io_helpers.validate_S0(S0,N)
 
-    # if sigma is None: sigma_matrix = np.identity(N, dtype=float)
-    # elif len(np.shape(sigma)) == 1: sigma_matrix = sigma * np.identity(N, dtype=float)
-    #
-    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
-    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
+    if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
-    # 1) CALCULATE THE RESPONSE MATRICES
+    # 1) PREPARE FOR THE CALCULATIONS
+    # Initialise the output array and enter the initial conditions
     nt = int(tmax) + 1
-    # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
-    sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
-    # Define the tensor where responses will be stored
-    resp_matrices = np.zeros((nt,N,N), dtype=float )
+    resp_matrices = np.zeros((nt,N,N), dtype=np.float64)
+    # Enter the initial conditions
+    resp_matrices[0][np.diag_indices(N)] = S0
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
-    resp_matrices[0] = sigma_matrix
-    for it in range(1,nt):
-        resp_matrices[it] = np.matmul(resp_matrices[it-1], con)
+    for t in range(1,nt):
+        resp_matrices[t] = np.matmul(resp_matrices[t-1], con)
 
     return resp_matrices
 
