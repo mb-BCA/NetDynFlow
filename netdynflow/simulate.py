@@ -42,7 +42,7 @@ from . import io_helpers
 
 
 ## DISCRETE-TIME CANONICAL MODELS #############################################
-def DiscreteCascade(con, X0=1, tmax=10):
+def DiscreteCascade(con, X0=1.0, tmax=10):
     """Simulates temporal evolution of the nodes for the discrete cascade.
 
     It returns the time-series of the nodes for the discrete cascade model
@@ -92,7 +92,7 @@ def DiscreteCascade(con, X0=1, tmax=10):
 
     return Xt
 
-def RandomWalk(con, X0=1, tmax=10):
+def RandomWalk(con, X0=1.0, tmax=10):
     """Simulates temporal evolution of the nodes for the random walks.
 
     It returns the time-series of the nodes for the discrete cascade model
@@ -148,7 +148,7 @@ def RandomWalk(con, X0=1, tmax=10):
 
 
 ## CONTINUOUS-TIME CANONICAL MODELS ###########################################
-def ContinuousCascade(con, X0=1, noise=None, tmax=10, timestep=0.01):
+def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     """Simulates the temporal evolution of the nodes for the continuous cascade.
 
     It solves the differential equation for the simplest possible linear
@@ -231,7 +231,7 @@ def ContinuousCascade(con, X0=1, noise=None, tmax=10, timestep=0.01):
 
     return Xdot
 
-def LeakyCascade(con, tau, X0=1, noise=None, tmax=10, timestep=0.01):
+def LeakyCascade(con, tau, X0=1.0, noise=None, tmax=10, timestep=0.01):
     """Simulates temporal evolution of the nodes for the leaky-cascade model.
 
     It solves the differential equation for the linear propagation model of
@@ -326,7 +326,7 @@ def LeakyCascade(con, tau, X0=1, noise=None, tmax=10, timestep=0.01):
 
     return Xdot
 
-def ContinuousDiffusion(con, X0=1, noise=None, tmax=10, timestep=0.01):
+def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     """Simulates the temporal evolution of the nodes for the continuous diffusion.
 
     It solves the differential equation for the simplest possible linear
