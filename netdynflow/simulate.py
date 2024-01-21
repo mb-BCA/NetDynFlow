@@ -232,7 +232,7 @@ def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
 
     return Xdot
 
-def LeakyCascade(con, tau, X0=1.0, noise=None, tmax=10, timestep=0.01):
+def LeakyCascade(con, X0=1.0, tau=1.0, noise=None, tmax=10, timestep=0.01):
     """Simulates temporal evolution of the nodes for the leaky-cascade model.
 
     It solves the differential equation for the linear propagation model of
@@ -251,16 +251,18 @@ def LeakyCascade(con, tau, X0=1.0, noise=None, tmax=10, timestep=0.01):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    tau : real value or ndarray (1d) of length N.
-        The decay time-constants of the nodes. If a scalar value is entered,
-        `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
-        (identical nodes). If an 1d-array is entered, each node i is assigned
-        decay time-constant `tau[i]`.
     X0 : scalar or ndarray (1d) of length N, optional
         Initial values of the nodes at time t = 0. If scalar value is entered,
         `X0 = c`, all nodes are initialised as `X0[i] = c` (same initial conditions).
         Default value, `X0 = 1.0`. If a 1d-array is entered, each node i is
         assigned initial value `X0[i]`.
+    tau : real value or ndarray (1d) of length N, optional
+        The decay time-constants of the nodes. If a scalar value is entered,
+        `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
+        (identical nodes). If an 1d-array is entered, each node i is assigned
+        decay time-constant `tau[i]`. Default `tau = 1.0` is probably too large
+        for most real networks and will diverge. If so, enter a `tau` smaller
+        than the spectral diameter (λ_max) of `con`.
     noise : None, scalar or ndarray (2d) of shape (nt,N), optional
         Additive noise. If `noise = None` simulation is run without noise.
         If scalar `noise = c`, a Gaussian white noise, centered at zero and
