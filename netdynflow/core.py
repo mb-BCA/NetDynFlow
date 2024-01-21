@@ -92,7 +92,7 @@ def TransitionMatrix(con, rwcase='simple'):
         The transition probability matrix.
     """
 
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     if con.dtype != np.float64:
         con = con.astype(np.float64)
@@ -134,7 +134,7 @@ def JacobianMOU(con, tau):
     jac : ndarray (2d) of shape (N,N)
         The Jacobian matrix for the MOU dynamical system.
     """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     tau = io_helpers.validate_tau(tau, N)
@@ -185,7 +185,7 @@ def LaplacianMatrix(con, normed=False):
 
 
 ## GENERATION OF THE MAIN TENSORS #############################################
-## DISCRETE-TIME CANONICAL MODELS #############################################
+## DISCRETE-TIME CANONICAL MODELS _____________________________________________
 
 # TODO: DECIDE BETTER NAMES FOR THESE FUNCTIONS. TRY GIVE THEM SHORTER NAMES.
 
@@ -225,7 +225,7 @@ def RespMatrices_DiscreteCascade(con, S0=1.0, tmax=10):
         contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
         the response of node j at time t, due to an initial perturbation on i.
      """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     S0 = io_helpers.validate_S0(S0,N)
@@ -286,7 +286,7 @@ def RespMatrices_RandomWalk(con, S0=1, tmax=10):
         contains the matrix of inputs. Entry `resp_matrices[t,i,j]` is the
         response of node j at time t, due to the initial perturbation on i.
     """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     S0 = io_helpers.validate_S0(S0,N)
@@ -313,7 +313,8 @@ def RespMatrices_RandomWalk(con, S0=1, tmax=10):
     return resp_matrices
 
 
-## CONTINUOUS-TIME CANONICAL MODELS ###########################################
+
+## CONTINUOUS-TIME CANONICAL MODELS ____________________________________________
 def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
     """Computes the pair-wise responses over time for the continuous cascade model.
 
