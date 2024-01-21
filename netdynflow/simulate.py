@@ -74,6 +74,8 @@ def DiscreteCascade(con, X0=1.0, tmax=10):
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
 
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if X0.dtype != np.float64:     X0 = X0.astype(np.float64)
@@ -126,6 +128,8 @@ def RandomWalk(con, X0=1.0, tmax=10):
     io_helpers.validate_con(con)
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
@@ -193,11 +197,15 @@ def ContinuousCascade(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
     noise = io_helpers.validate_noise(noise, N,tmax,timestep)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
@@ -286,12 +294,16 @@ def LeakyCascade(con, X0=1.0, tau=1.0, noise=None, tmax=10, timestep=0.01):
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
     tau = io_helpers.validate_tau(tau, N)
     noise = io_helpers.validate_noise(noise, N,tmax,timestep)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
@@ -377,11 +389,15 @@ def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     - Integration goes from it=0 to it=nt, with `Xdot[0] = X0`.
     - The sampled time points are `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
-    # 0) HANDLE AND CHECK THE INPUTS. Ensure all arrays are of same dtype
+    # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
     X0 = io_helpers.validate_X0(X0, N)
     noise = io_helpers.validate_noise(noise, N,tmax,timestep)
+
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
     # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
