@@ -139,7 +139,7 @@ def JacobianMOU(con, tau):
     N = len(con)
     tau = io_helpers.validate_tau(tau, N)
 
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:    con = con.astype(np.float64)
     if tau.dtype != np.float64:    tau = tau.astype(np.float64)
 
@@ -232,7 +232,7 @@ def RespMatrices_DiscreteCascade(con, S0=1.0, tmax=10):
 
     if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
     if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
@@ -293,7 +293,7 @@ def RespMatrices_RandomWalk(con, S0=1, tmax=10):
 
     if tmax <= 0.0: raise ValueError("'tmax' must be positive")
 
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
     if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
@@ -315,12 +315,11 @@ def RespMatrices_RandomWalk(con, S0=1, tmax=10):
 
 
 ## CONTINUOUS-TIME CANONICAL MODELS ____________________________________________
-def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
+def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     """Computes the pair-wise responses over time for the continuous cascade model.
 
-    TODO: WHAT SHOULD WE DO WITH THE 'SIGMA' PARAMETER ? FOR THE MOU CASE
-    I WANTED TO LEAVE IT THERE FOR GENERALITY. BUT, DOES IT MAKE SENSE TO
-    CALL THIS EQUATION WITH A (CORRELATED) ADDITIVE GAUSSIAN NOISE ?
+    TODO: SHALL WE ALLOW 'S0' TO BE A MATRIX OF (POSSIBLY CORRELATED) GAUSSIAN
+    WHITE NOISE, AS ORIGINALLY FOR THE MOU ?
 
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the response matrices Rij(t) encode the temporal
@@ -340,19 +339,11 @@ def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
-        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
-        The covariance matrix of the inputs.
-        - The default value 'sigma=1.0' applies an input of amplitude 1.0
-        to all nodes.
-        - If a vector v of length N is entered, each node will receive an initial
-        input of amplitude v_i.
-        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
-        employed as the amplitudes of the inputs to node i. Extradiagonal
-        value M_ij will be considered as correlated noise Gaussian noise. This
-        case is left available for situations in which the system is interpreted
-        as the multivariate Ornstein-Uhlenbeck process, which is the same
-        equation but with additive Gaussian noise applied on the nodes.
+    S0 : scalar or ndarray (1d) of length N, optional
+        Amplitude of the stimuli applied to nodes at time t = 0.
+        If scalar value given, `S0 = c`, all nodes are initialised as `S0[i] = c`
+        Default, `S0 = 1.0` represents a unit perturbation to all nodes.
+        If a 1d-array is given, node i receives initial stimulus `S0[i]`.
     tmax : scalar, optional
         Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
@@ -360,69 +351,77 @@ def RespMatrices_ContCascade(con, sigma=1.0, tmax=10, timestep=0.1):
 
     Returns
     -------
-    resp_matrices : ndarray of rank-3
-        Temporal evolution of the pair-wise responses. A tensor of shape
-        (nt,N,N), where N is the number of nodes and nt = tmax*timestep + 1 is
-        the number of time steps. The first time point contains the matrix of
-        inputs (sigma).
+    resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
+        Temporal evolution of the pair-wise responses. The first time point
+        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
+        the response of node j at time t, due to an initial perturbation on i.
 
     NOTE
     ----
-    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    Simulation runs from t=0 to t=tmax, in sampled `timestep` apart. Thus,
+    simulation steps go from it=0 to it=nt, where `nt = int(tmax*timestep) + 1`
+    is the total number of time samples (number of response matrices calculated).
+    Get the sampled time points as `tpoints = np.arange(0,tmax+timestep,timestep)`
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
-    # sigma = io_helpers.validate_sigma()
+    S0 = io_helpers.validate_S0(S0,N)
 
-    # if sigma is None:
-    #     sigma_matrix = np.identity(N, dtype=float)
-    # elif len(np.shape(sigma)) == 1:
-    #     sigma_matrix = sigma * np.identity(N, dtype=float)
-    # else:
-    #     sigma_matrix = sigma
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
-    # if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
-    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
+    if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
-    # 1) CALCULATE THE RESPONSE MATRICES
+    # 1) PREPARE FOR THE CALCULATIONS
+    # Initialise the output array and enter the initial conditions
     nt = int(tmax / timestep) + 1
-    # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
-    sigma_sqrt = scipy.linalg.sqrtm(sigma_matrix)
-    # Define the tensor where responses will be stored
-    resp_matrices = np.zeros((nt,N,N), dtype=float )
+    resp_matrices = np.zeros((nt,N,N), dtype=np.float64 )
+    # Enter the initial conditions
+    S0mat = S0 * np.identity(N, dtype=np.float64)
+    # # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
+    # S0mat = scipy.linalg.sqrtm(S0mat)
+    resp_matrices[0] = S0mat
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
-    if sigma is None:
-        # Do the calculation a bit faster for the default unit inputs
+    # Faster loop, for default case - stimuli of unit amplitude
+    if S0.all()==1.0:
+        # Enter the initial conditions
+        resp_matrices[0][np.diag_indices(N)] = 1.0
         for it in range(nt):
             t = it * timestep
             # Calculate the Green's function at time t.
             resp_matrices[it] = scipy.linalg.expm(con * t)
+
+    # General case – arbitrary stimuli
     else:
-        # Do the calculation if other inputs are entered besides the default
+        # Enter the initial conditions
+        S0mat = S0 * np.identity(N, dtype=np.float64)
+        # S0mat = scipy.linalg.sqrtm(S0mat)
+        resp_matrices[0] = S0mat
+
         for it in range(nt):
             t = it * timestep
             # Calculate the Green's function at time t.
-            greens_t = scipy.linalg.expm(con * t)
+            greenf_t = scipy.linalg.expm(con * t)
             # Calculate the pair-wise responses at time t.
-            resp_matrices[it] = np.dot(sigma_sqrt, greens_t)
+            resp_matrices[it] = np.matmul(S0mat, greenf_t)
 
     return resp_matrices
 
-def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
+def RespMatrices_LeakyCascade(con, S0=1.0, tau=1.0, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the leaky-cascade model.
 
-    NOTE: I WOULD RECOMMEND TO REMOVE THE 'normed' OPTIONAL PARAMETER.
+    TODO: I WOULD RECOMMEND TO REMOVE THE 'normed' OPTIONAL PARAMETER.
     IT DOESN'T MAKE MUCH SENSE IN THE FULL OR THE INTRINSIC CASES. BUT I COULD
     LEAVE IT FOR LEGACY REASONS.
 
-    TODO: DECIDE A BETTER NAME. WILL DEPEND ON HOW TO NAME THE FUNCTIONS FOR THE
-    OTHER CANONICAL MODELS. TRY GIVE SHORTER NAMES.
+    TODO: SHALL WE ALLOW 'S0' TO BE A MATRIX OF (POSSIBLY CORRELATED) GAUSSIAN
+    WHITE NOISE, AS ORIGINALLY FOR THE MOU ?
 
     Given a connectivity matrix A, where Aij represents the (weighted)
     connection from i to j, the response matrices Rij(t) encode the temporal
@@ -446,24 +445,18 @@ def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    tau : real value or ndarray (1d) of length N.
+    S0 : scalar or ndarray (1d) of length N, optional
+        Amplitude of the stimuli applied to nodes at time t = 0.
+        If scalar value given, `S0 = c`, all nodes are initialised as `S0[i] = c`
+        Default, `S0 = 1.0` represents a unit perturbation to all nodes.
+        If a 1d-array is given, node i receives initial stimulus `S0[i]`.
+    tau : real value or ndarray (1d) of length N, optional
         The decay time-constants of the nodes. If a scalar value is entered,
         `tau = c`, then all nodes will be assigned the same value `tau[i] = 2`
         (identical nodes). If an 1d-array is entered, each node i is assigned
-        decay time-constant `tau[i]`.
-    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
-        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
-        The covariance matrix of the inputs.
-        - The default value 'sigma=1.0' applies an input of amplitude 1.0
-        to all nodes.
-        - If a vector v of length N is entered, each node will receive an initial
-        input of amplitude v_i.
-        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
-        employed as the amplitudes of the inputs to node i. Extradiagonal
-        value M_ij will be considered as correlated noise Gaussian noise. This
-        case is left available for situations in which the system is interpreted
-        as the multivariate Ornstein-Uhlenbeck process, which is the same
-        equation but with additive Gaussian noise applied on the nodes.
+        decay time-constant `tau[i]`. Default `tau = 1.0` is probably too large
+        for most real networks and will diverge. If so, enter a `tau` smaller
+        than the spectral diameter (λ_max) of `con`.
     tmax : scalar, optional
         Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
@@ -476,37 +469,36 @@ def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
 
     Returns
     -------
-    resp_matrices : ndarray of rank-3
-        Temporal evolution of the pair-wise responses. A tensor of shape
-        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
-        the number of time steps.
+    resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
+        Temporal evolution of the pair-wise responses. The first time point
+        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
+        the response of node j at time t, due to an initial perturbation on i.
 
     NOTE
     ----
-    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    Simulation runs from t=0 to t=tmax, in sampled `timestep` apart. Thus,
+    simulation steps go from it=0 to it=nt, where `nt = int(tmax*timestep) + 1`
+    is the total number of time samples (number of response matrices calculated).
+    Get the sampled time points as `tpoints = np.arange(0,tmax+timestep,timestep)`.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
+    S0 = io_helpers.validate_S0(S0,N)
     tau = io_helpers.validate_tau(tau, N)
-    # sigma = io_helpers.validate_sigma()
 
-    # if sigma is None:
-    #     sigma_matrix = np.identity(N, dtype=float)
-    # elif len(np.shape(sigma)) == 1:
-    #     sigma_matrix = sigma * np.identity(N, dtype=float)
-    # else:
-    #     sigma_matrix = sigma
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
+    if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
     if tau.dtype != np.float64:     tau = tau.astype(np.float64)
-    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
 
     caselist = ['regressed', 'full', 'intrinsic']
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
-
 
     # 1) CALCULATE THE JACOBIAN MATRIX
     jac = JacobianMOU(con, tau)
@@ -515,8 +507,13 @@ def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
     # 2) CALCULATE THE RESPONSE MATRICES
     # 2.1) Calculate the extrinsic flow over integration time
     nt = int(tmax / timestep) + 1
-    sigma_sqrt = scipy.linalg.sqrtm(sigma)
     resp_matrices = np.zeros((nt,N,N), dtype=float)
+    # Enter the initial conditions
+    S0mat = S0 * np.identity(N, dtype=np.float64)
+    # # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
+    sigma_sqrt = scipy.linalg.sqrtm(S0mat)
+    # S0mat = scipy.linalg.sqrtm(S0mat)
+    # resp_matrices[0] = S0mat
 
     if case == 'regressed':
         for it in range(nt):
@@ -551,7 +548,7 @@ def RespMatrices_LeakyCascade(con, tau, sigma=1.0, tmax=10, timestep=0.1,
 
     return resp_matrices
 
-def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
+def RespMatrices_ContinuousDiffusion(con, S0=1.0, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the linear diffusive model.
 
@@ -578,19 +575,11 @@ def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
     ----------
     con : ndarray (2d) of shape (N,N).
         The connectivity matrix of the network.
-    sigma : scalar, ndarray (1d) of length N, or ndarray (2d) of shape (N,N), optional
-        TODO: RE-WRITE AFTER DECIDING WHAT TO DO WITH 'SIGMA'
-        The covariance matrix of the inputs.
-        - The default value 'sigma=1.0' applies an input of amplitude 1.0
-        to all nodes.
-        - If a vector v of length N is entered, each node will receive an initial
-        input of amplitude v_i.
-        - If a matrix M of shape (N,N) is entered, diagonal entries M_ii will
-        employed as the amplitudes of the inputs to node i. Extradiagonal
-        value M_ij will be considered as correlated noise Gaussian noise. This
-        case is left available for situations in which the system is interpreted
-        as the multivariate Ornstein-Uhlenbeck process, which is the same
-        equation but with additive Gaussian noise applied on the nodes.
+    S0 : scalar or ndarray (1d) of length N, optional
+        Amplitude of the stimuli applied to nodes at time t = 0.
+        If scalar value given, `S0 = c`, all nodes are initialised as `S0[i] = c`
+        Default, `S0 = 1.0` represents a unit perturbation to all nodes.
+        If a 1d-array is given, node i receives initial stimulus `S0[i]`.
     tmax : scalar, optional
         Duration of the simulation, arbitrary time units.
     timestep : scalar, optional
@@ -602,36 +591,36 @@ def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
 
     Returns
     -------
-    resp_matrices : ndarray of rank-3
-        Temporal evolution of the pair-wise responses. A tensor of shape
-        (nt,N,N), where N is the number of nodes and nt = tmax * timestep is
-        the number of time steps.
+    resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
+        Temporal evolution of the pair-wise responses. The first time point
+        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
+        the response of node j at time t, due to an initial perturbation on i.
 
     NOTE
     ----
-    TODO: WRITE ME HERE, EXPLANATION ABOUT DURATION AND TIME-STEPS ...
+    Simulation runs from t=0 to t=tmax, in sampled `timestep` apart. Thus,
+    simulation steps go from it=0 to it=nt, where `nt = int(tmax*timestep) + 1`
+    is the total number of time samples (number of response matrices calculated).
+    Get the sampled time points as `tpoints = np.arange(0,tmax+timestep,timestep)`.
     """
     # 0) HANDLE AND CHECK THE INPUTS
     io_helpers.validate_con(con)
     N = len(con)
-    # sigma = io_helpers.validate_sigma()
+    S0 = io_helpers.validate_S0(S0,N)
+    tau = io_helpers.validate_tau(tau, N)
 
-    # if sigma is None:
-    #     sigma_matrix = np.identity(N, dtype=float)
-    # elif len(np.shape(sigma)) == 1:
-    #     sigma_matrix = sigma * np.identity(N, dtype=float)
-    # else:
-    #     sigma_matrix = sigma
+    if tmax <= 0.0: raise ValueError("'tmax' must be positive")
+    if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
+    if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
-    # Ensure all arrays are of same dtype (float64)
+    # Ensure all arrays are of same dtype (np.float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
-    if sigma.dtype != np.float64:   sigma = sigma.astype(np.float64)
-
+    if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
+    if tau.dtype != np.float64:     tau = tau.astype(np.float64)
 
     caselist = ['regressed', 'full', 'intrinsic']
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
-
 
     # 1) CALCULATE THE JACOBIAN MATRIX
     # NOTE: The graph Laplacian is the Jacobian matrix of the linear propagation
@@ -643,8 +632,13 @@ def RespMatrices_ContinuousDiffusion(con, sigma=1.0, tmax=10, timestep=0.1,
     # 1) CALCULATE THE RESPONSE MATRICES
     # 2.1) Calculate the extrinsic flow over integration time
     nt = int(tmax / timestep) + 1
-    sigma_sqrt = scipy.linalg.sqrtm(sigma)
     resp_matrices = np.zeros((nt,N,N), dtype=float)
+    # Enter the initial conditions
+    S0mat = S0 * np.identity(N, dtype=np.float64)
+    # # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
+    sigma_sqrt = scipy.linalg.sqrtm(S0mat)
+    # S0mat = scipy.linalg.sqrtm(S0mat)
+    # resp_matrices[0] = S0mat
 
     if case == 'regressed':
         for it in range(nt):
