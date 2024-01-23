@@ -39,7 +39,8 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 - Think very carefully the **naming of the canonical models**. There are historical implications here but … One should be pragmatical and besides, those names should really be informative for the user. I would prefer that than using names only because in one field or in another, the models are called in some way. See the *NamingConventions.md* file for proposals.
 - Function `Time2Peak()` should return `np.inf` for those pair-wise elements when there is no input in a node. Now, it returns zeros in those cases.
 - Same for function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
-- Add security checks at the beginning of all functions.
+- (DONE) Add security checks at the beginning of all functions.
+- Switch the `dot()` operations in *simulate.py* to avoid calculating the transpose matrix. As of now, this module uses internally the dynamical systems convention while *core.py* uses graph convention. We decided to stick to the graph convention.
 
 
 
