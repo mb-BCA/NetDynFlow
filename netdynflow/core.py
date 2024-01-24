@@ -380,27 +380,18 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     # Initialise the output array and enter the initial conditions
     nt = int(tmax / timestep) + 1
     resp_matrices = np.zeros((nt,N,N), dtype=np.float64 )
+    # Convert the stimuli into a matrix
+    if S0.ndim in [0,1]:
+        S0mat = S0 * np.identity(N, dtype=np.float64)
+        # S0mat = scipy.linalg.sqrtm(S0mat)
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
-    # Faster loop, for default case - stimuli of unit amplitude
-    if S0.min()==1.0 and S0.max()==1.0:
-        for it in range(nt):
-            t = it * timestep
-            # Calculate the Green's function at time t.
-            resp_matrices[it] = scipy.linalg.expm(con * t)
-
-    # General case – arbitrary stimuli
-    else:
-        # Convert the stimuli into a matrix
-        if S0.ndim in [0,1]:
-            S0mat = S0 * np.identity(N, dtype=np.float64)
-        # S0mat = scipy.linalg.sqrtm(S0mat)
-        for it in range(nt):
-            t = it * timestep
-            # Calculate the Green's function at time t.
-            greenf_t = scipy.linalg.expm(con * t)
-            # Calculate the pair-wise responses at time t.
-            resp_matrices[it] = np.matmul(S0mat, greenf_t)
+    for it in range(nt):
+        t = it * timestep
+        # Calculate the Green's function at time t.
+        greenf_t = scipy.linalg.expm(con * t)
+        # Calculate the pair-wise responses at time t.
+        resp_matrices[it] = np.matmul(S0mat, greenf_t)
 
     return resp_matrices
 
@@ -408,10 +399,7 @@ def RespMatrices_LeakyCascade(con, S0=1.0, tau=1.0, tmax=10, timestep=0.1,
                                                 case='regressed', normed=False):
     """Computes the pair-wise responses over time for the leaky-cascade model.
 
-    TODO: I WOULD RECOMMEND TO REMOVE THE 'normed' OPTIONAL PARAMETER.
-    IT DOESN'T MAKE MUCH SENSE IN THE FULL OR THE INTRINSIC CASES. BUT I COULD
-    LEAVE IT FOR LEGACY REASONS.
-
+    TODO: DECIDE ABOUT THE 'normed' PARAMETER.
     TODO: SHALL WE ALLOW 'S0' TO BE A MATRIX OF (POSSIBLY CORRELATED) GAUSSIAN
     WHITE NOISE, AS ORIGINALLY FOR THE MOU ?
 
@@ -454,17 +442,25 @@ def RespMatrices_LeakyCascade(con, S0=1.0, tau=1.0, tmax=10, timestep=0.1,
     timestep : scalar, optional
         Temporal step (resolution) between consecutive calculations of responses.
     case : string (optional)
-        TODO: WRITE ME HERE !!
+        - 'full' Computes the responses a given by the Green's function of the
+        Jacobian of the system: e^{Jt} with J = - I / tau + A.
+        - 'intrinsic' Computes the trivial responses due to the leakage through
+        the nodes: e^{J0t} with J0 = I / tau. This represents a 'null' case where
+        the network is empty (has no links) and the initial inputs passively
+        leak through the nodes without propagating.
+        - 'regressed' Computes the network responses due to the presence of the
+        links: e^{Jt} - e^{J0t}. That is, the 'full' response minus the passive,
+        'intrinsic' leakage.
     normed : boolean (optional)
-        If True, normalises the tensor by a scaling factor, to make networks
+        DEPRECATED. If True, normalises the tensor by a scaling factor, to make networks
         of different size comparable.
 
     Returns
     -------
     resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
-        Temporal evolution of the pair-wise responses. The first time point
-        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
-        the response of node j at time t, due to an initial perturbation on i.
+        Temporal evolution of the pair-wise responses. Entries
+        `resp_matrices[t,i,j]` represent the response of node j at time t, due
+        to an initial perturbation on i.
 
     NOTE
     ----
@@ -492,46 +488,43 @@ def RespMatrices_LeakyCascade(con, S0=1.0, tau=1.0, tmax=10, timestep=0.1,
     if case not in caselist:
         raise ValueError( "Please enter one of accepted cases: %s" %str(caselist) )
 
-    # 1) CALCULATE THE JACOBIAN MATRIX
+    # 1) PREPARE FOR THE CALCULATIONS
+    # Initialise the output array and enter the initial conditions
+    nt = int(tmax / timestep) + 1
+    resp_matrices = np.zeros((nt,N,N), dtype=np.float64 )
+    # Compute the Jacobian matrices
     jac = JacobianMOU(con, tau)
     jacdiag = np.diagonal(jac)
-
-    # 2) CALCULATE THE RESPONSE MATRICES
-    # 2.1) Calculate the extrinsic flow over integration time
-    nt = int(tmax / timestep) + 1
-    resp_matrices = np.zeros((nt,N,N), dtype=float)
-    # Enter the initial conditions
-    S0mat = S0 * np.identity(N, dtype=np.float64)
-    # # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
-    sigma_sqrt = scipy.linalg.sqrtm(S0mat)
+    # Convert the stimuli into a matrix
+    if S0.ndim in [0,1]:
+        S0mat = S0 * np.identity(N, dtype=np.float64)
     # S0mat = scipy.linalg.sqrtm(S0mat)
-    # resp_matrices[0] = S0mat
 
-    if case == 'regressed':
+    if case == 'full':
         for it in range(nt):
             t = it * timestep
-            # Calculate the term for jacdiag without using expm(), to speed up
-            jacdiag_t = np.diag( np.exp(jacdiag * t) )
-            # Calculate the jaccobian at given time
-            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the Green's function at time t
+            green_t = scipy.linalg.expm(jac * t)
             # Calculate the pair-wise responses at time t
-            resp_matrices[it] = np.dot( sigma_sqrt, jac_t - jacdiag_t )
+            resp_matrices[it] = np.matmul( S0mat, green_t )
 
     elif case == 'intrinsic':
         for it in range(nt):
             t = it * timestep
-            # Calculate the term for jacdiag without using expm(), to speed up
-            jacdiag_t = np.diag( np.exp(jacdiag * t) )
+            # Calculate the Green's function (of an empty graph) at time t
+            greendiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the pair-wise responses at time t
-            resp_matrices[it] = np.dot( sigma_sqrt, jacdiag_t)
+            resp_matrices[it] = np.matmul( S0mat, greendiag_t)
 
-    elif case == 'full':
+    elif case == 'regressed':
         for it in range(nt):
             t = it * timestep
-            # Calculate the jaccobian at given time
-            jac_t = scipy.linalg.expm(jac * t)
+            # Calculate the Green's function (of the full system) at time t
+            green_t = scipy.linalg.expm(jac * t)
+            # Calculate the Green's function (of an empty graph) at time t
+            greendiag_t = np.diag( np.exp(jacdiag * t) )
             # Calculate the pair-wise responses at time t
-            resp_matrices[it] = np.dot( sigma_sqrt, jac_t )
+            resp_matrices[it] = np.matmul( S0mat, green_t - greendiag_t )
 
     # 2.2) Normalise by the scaling factor
     if normed:
