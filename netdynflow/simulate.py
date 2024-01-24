@@ -417,7 +417,7 @@ def ContinuousDiffusion(con, X0=1.0, noise=None, tmax=10, timestep=0.01):
     Xdot[0] = X0
 
     # 2) RUN THE SIMULATION
-    if noise in None:
+    if noise is None:
         for t in range(1,nt):
             Xpre = Xdot[t-1]
             # Calculate the input to nodes due to couplings
