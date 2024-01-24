@@ -30,6 +30,7 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 	- Possible solution: make `sigma` available for the R(t) generators of the continuous canonical models. BUT, make it an optional parameter with default being `sigma=None`. This default will use the identity matrix = input of unit 1.0 to all nodes. Then, allow `sigma` to be either a vector of size N for the amplitudes of the initial inputs, OR a NxN matrix with the possible correlated noise inputs as well.
 	- If `sigma` will be the matrix of Gaussian noise input amplitudes, Matt said that the norm of the matrix should fulfil some condition. DOUBLE CHECK WITH MATT and add the subsequent security check to the function(s).
 
+- Double check the normalization of Gaussian noise (dependint of time-step) in *simulate.py*. It seems the variance of the results is ~2x the one it should (??)
 - Include a *netmodels.py* module for generating networks and surrogates. Include the followong functions:
 	- A function to generate random weighted networks of different distributions.
 	- In spatially embedded networks, a function to assign the stronger links to the closest nodes.
@@ -39,7 +40,8 @@ In any case, v2 has to be a clean and coherent library such that the transition 
 - Think very carefully the **naming of the canonical models**. There are historical implications here but … One should be pragmatical and besides, those names should really be informative for the user. I would prefer that than using names only because in one field or in another, the models are called in some way. See the *NamingConventions.md* file for proposals.
 - Function `Time2Peak()` should return `np.inf` for those pair-wise elements when there is no input in a node. Now, it returns zeros in those cases.
 - Same for function `Time2Decay()`. Not it returns the duration of the simulation in those cases. 
-- Add security checks at the beginning of all functions.
+- (DONE) Add security checks at the beginning of all functions.
+- Think if we want a different name for *core.py*.
 
 
 
