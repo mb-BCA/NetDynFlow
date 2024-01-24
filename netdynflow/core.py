@@ -352,9 +352,9 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     Returns
     -------
     resp_matrices : ndarray (3d) of shape (tmax+1,N,N)
-        Temporal evolution of the pair-wise responses. The first time point
-        contains the matrix of inputs. Entries `resp_matrices[t,i,j]` represent
-        the response of node j at time t, due to an initial perturbation on i.
+        Temporal evolution of the pair-wise responses. Entries
+        `resp_matrices[t,i,j]` represent the response of node j at time t, due
+        to an initial perturbation on i.
 
     NOTE
     ----
