@@ -41,6 +41,25 @@ These names are relevant because they are the "short names" we should use to "ta
 - Continuous diffusion (simple diffusion)
 
 
+####  A new name for the library, to replace 'NetDynFlow'
+
+In the new paper, where we generalise the ideas of the "dynamic communicability" for plugin different canonical models, we converged into calling Rij(t) as the responses from one node to another. Therefore, we are no longer talking of flows or communicability and we should have a different name for the library. Also, we do not want to use the word "pertubartion" because some people think it refers to a lession of the network nodes or links. So, it seems that "Response Network Analysis" could be a reasonable naming.
+ 
+- Response Network Analysis. 
+	- ReNetA `rna.function()`
+	- Renata
+	- RespNet `rn.function()`
+- Network Response Analysis. NetReA, `nra.function()`
+- Perturbation-Response Network analysis
+- Stimulus-Response Network Analysis
+	- SRNetA `sra.function()` 
+	- SiReNA `sirena.function()`  `sna.function()`
+	- SiReNetA `sra.function()` `srn.function()`
+
+**ACHTUNG !!** We must look in PyPI whether libraries with these names already exist :(
+
+
+
 ## Internal variable naming conventions
 
 
