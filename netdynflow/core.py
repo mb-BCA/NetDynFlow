@@ -384,7 +384,6 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     # Faster loop, for default case - stimuli of unit amplitude
     if S0.min()==1.0 and S0.max()==1.0:
-        # Enter the initial conditions
         for it in range(nt):
             t = it * timestep
             # Calculate the Green's function at time t.
@@ -396,7 +395,6 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
         if S0.ndim in [0,1]:
             S0mat = S0 * np.identity(N, dtype=np.float64)
         # S0mat = scipy.linalg.sqrtm(S0mat)
-
         for it in range(nt):
             t = it * timestep
             # Calculate the Green's function at time t.
