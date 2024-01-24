@@ -5,11 +5,12 @@
 - Save current master into a branch for legacy.
 - Open a new branch out of dev_v2 --> '**v2-cleanup**'.
 - Clean ____init____.py: 
-	- Remove imports to test modules. 
+	- Remove imports to test modules, and to irrelevant modules. 
 	- Double check list of absolute imports.
 	- Update general description. Explanation for the canonical models.
 	- Double check the instructions in the initial docstring. New names of functions. Make sure the examples work if copy/pasted.
 	- Update the publication list, include the latest dynflow paper.
+- Revise the `__all__` list of functions in *core.py*. Do we need such a list of absolute imports in the other modules?
 - Update the Copyright dates in all files.
 - Update the version number to 2.0.0 in ____init___.py and setup.py.
 - Remove unnecessary files (to-do lists, NamingConventions, etc.)

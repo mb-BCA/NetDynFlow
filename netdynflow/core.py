@@ -372,7 +372,7 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
     if timestep >= tmax: raise ValueError("'timestep' must be smaller than 'tmax'")
 
-    # Ensure all arrays are of same dtype (np.float64)
+    # Ensure all arrays are of same dtype (float64)
     if con.dtype != np.float64:     con = con.astype(np.float64)
     if S0.dtype != np.float64:      S0 = S0.astype(np.float64)
 
@@ -380,17 +380,11 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
     # Initialise the output array and enter the initial conditions
     nt = int(tmax / timestep) + 1
     resp_matrices = np.zeros((nt,N,N), dtype=np.float64 )
-    # Enter the initial conditions
-    S0mat = S0 * np.identity(N, dtype=np.float64)
-    # # TODO: IN THIS CASE, DO WE NEED THIS NORMALIZATION ?
-    # S0mat = scipy.linalg.sqrtm(S0mat)
-    resp_matrices[0] = S0mat
 
     # 2) COMPUTE THE PAIR-WISE RESPONSE MATRICES OVER TIME
     # Faster loop, for default case - stimuli of unit amplitude
-    if S0.all()==1.0:
+    if S0.min()==1.0 and S0.max()==1.0:
         # Enter the initial conditions
-        resp_matrices[0][np.diag_indices(N)] = 1.0
         for it in range(nt):
             t = it * timestep
             # Calculate the Green's function at time t.
@@ -398,10 +392,10 @@ def RespMatrices_ContCascade(con, S0=1.0, tmax=10, timestep=0.1):
 
     # General case – arbitrary stimuli
     else:
-        # Enter the initial conditions
-        S0mat = S0 * np.identity(N, dtype=np.float64)
+        # Convert the stimuli into a matrix
+        if S0.ndim in [0,1]:
+            S0mat = S0 * np.identity(N, dtype=np.float64)
         # S0mat = scipy.linalg.sqrtm(S0mat)
-        resp_matrices[0] = S0mat
 
         for it in range(nt):
             t = it * timestep
