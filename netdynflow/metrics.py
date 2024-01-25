@@ -12,6 +12,8 @@
 Analysis of dynamic communicability and flow
 ============================================
 
+TODO: ADAPT THESE DESCRIPTIONS TO THE NEW, MORE GENERAL NOMENCLATURE
+
 Functions to analyse the spatio-temporal evolution of perturbation-induced
 flows in a network. The data shall be given in the form of 3D tensor arrays
 previously calculated from a given network. See 'core.py' module.
@@ -53,6 +55,8 @@ import scipy.linalg
 def TotalEvolution(tensor):
     """
     Calculates total amount of flow through the network at every time point.
+
+    TODO: RENAME THIS FUNCTION AS 'GlobalResponse()'
 
     Parameters
     ----------

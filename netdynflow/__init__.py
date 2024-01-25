@@ -12,6 +12,8 @@
 Network Analysis Based on Perturbation-Induced Flows
 ====================================================
 
+TODO: UPDATE THIS GENERAL DOCSTRING
+
 A package to study complex networks based on the spatio-temporal propagation of
 flows due to external perturbations.
 Compatible with Python 3.X.
@@ -158,6 +160,10 @@ __copyright__ = "Copyright 2024"
 __license__ = "Apache License version 2.0"
 __version__ = "2.0.0.dev1"
 __update__ = "16/01/2024"
+
+
+
+
 
 
 #
