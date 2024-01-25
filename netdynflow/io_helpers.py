@@ -16,6 +16,8 @@ This module contains functions to help IO operations, specially to carry the
 validation checks for the user inputs (parameters to functions) and ensure all
 relevant arrays are given in the correct data type.
 
+TODO: FINISH DOCSTRINGS AND SUMMARY OF THE FUNCTIONS
+
 Input handling
 --------------
 function_name
@@ -36,14 +38,9 @@ import numpy.random
 
 ## INPUT HANDLING FUNCTIONS ###################################################
 
-# VALIDATE TIMES ??
-# if tmax <= 0.0: raise ValueError("'tmax' must be positive")
-# if timestep <= 0.0: raise ValueError( "'timestep' must be positive")
-# if timestep > tmax: raise ValueError("Incompatible values, timestep < tmax given")
-
-
 def validate_con(a):
     """
+    THIS FUNCTION DOES NOT RETURN ANYTHING. IT ONLY CHECKS THE MATRIX
     """
     # Make sure 'con' is a numpy array, of np.float64 dtype
     if isinstance(a, np.ndarray): pass
@@ -87,11 +84,23 @@ def validate_S0(a, n_nodes):
         raise TypeError(
         "'S0' must be either scalar or numpy array, but %s found" %type(a) )
 
-    # Make sure 'X0' is a 1D array
+    # Make sure 'S0' is a 1D array
     if np.ndim(a) != 1:
         raise ValueError(
         "'S0' must be either scalar or 1-dimensional of length N, but shape %s found"
         %str(np.shape(a)) )
+
+    # # Make sure 'S0' is a 1D array or a 2D square array
+    # if np.ndim(a)== 1:
+    #     pass
+    # # Make sure 'S0' is a 2D array
+    # elif np.ndim(a)==2:
+    #     conshape = np.shape(a)
+    #     if conshape[0]==conshape[1]: pass
+    # else:
+    #     raise ValueError(
+    #     "'S0' must be either scalar, 1-dimensional of length N or 2-dimensional square array, but shape %s found"
+    #     %str(np.shape(a)) )
 
     return a
 
