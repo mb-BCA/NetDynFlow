@@ -48,7 +48,7 @@ SpatialLatticeFromNetwork
 import numpy as np
 import numpy.linalg
 import scipy.linalg
-from numba import jit
+# from numba import jit
 # Import GAlib for graph analysis and graph generation tools
 ### ACHTUNG!! For now I am importing GAlib but, for the long run, we must
 ### decide whether we want GAlib as a dependency of NetDynFlow, or we
@@ -106,7 +106,7 @@ def ShuffleLinkWeights(con):
 
     return newcon
 
-@jit
+# @jit
 def RandomiseWeightedNetwork(con):
     """
     Randomises a connectivity matrix and its weights.
