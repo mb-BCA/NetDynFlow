@@ -131,7 +131,7 @@ def Reciprocity(adjmatrix):
         # Rest = np.abs(adjmatrix - adjmatrix.T)
         Rest = np.abs(adjmatrix ^ adjmatrix.T)
         Lsingle = 0.5*Rest.sum()
-        reciprocity = np.float(L-Lsingle) / L
+        reciprocity = float(L-Lsingle) / L
 
     return reciprocity
 

@@ -266,7 +266,7 @@ def SpatialWeightSorting(con, distmat, descending=True):
     newidx = (nzidx[0][sortdistidx], nzidx[1][sortdistidx])
 
     # 3) CREATE THE NEW CONNECTIVITY WITH THE LINK WEIGHTS SORTED SPATIALLY
-    newcon = np.zeros((N,N), np.float)
+    newcon = np.zeros((N,N), np.float64)
     newcon[newidx] = weights
 
     return newcon
@@ -337,7 +337,7 @@ def SpatialLatticeFromNetwork(con, distmat, descending=True):
     newidx = np.unravel_index( sortdistidx, (N,N) )
 
     # And finally, create the coonectivity matrix with the weights sorted
-    newcon = np.zeros((N,N), np.float)
+    newcon = np.zeros((N,N), np.float64)
     newcon[newidx] = weights
 
     return newcon

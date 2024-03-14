@@ -100,7 +100,7 @@ def Diversity(tensor):
         raise ValueError("Input array not aligned. A 3D array of shape (nt x N x N) expected.")
 
     nt = tensor_shape[0]
-    diversity = np.zeros(nt, np.float)
+    diversity = np.zeros(nt, np.float64)
     diversity[0] = np.nan
     for i_t in range(1,nt):
         temp = tensor[i_t]
@@ -149,8 +149,8 @@ def NodeFlows(tensor, selfloops=False):
     # Excluding the self-flows a node due to inital perturbation on itself.
     else:
         nt, N,N = arr_shape
-        inflows = np.zeros((nt,N), np.float)
-        outflows = np.zeros((nt,N), np.float)
+        inflows = np.zeros((nt,N), np.float64)
+        outflows = np.zeros((nt,N), np.float64)
         for i in range(N):
             tempdiags = tensor[:,i,i]
             inflows[:,i]  = tensor[:,:,i].sum(axis=1) - tempdiags
@@ -271,7 +271,7 @@ def Time2Decay(arr, dt, fraction=0.99):
     ## We could start from the end and save plenty of iterations.
     ttd_shape = arr_shape[1:]
     nsteps = arr_shape[0]
-    ttd_arr = nsteps * np.ones(ttd_shape, np.int)
+    ttd_arr = nsteps * np.ones(ttd_shape, np.int64)
 
     # Iterate over time, calculating the cumulative flow(s)
     cflow = arr[0].copy()
@@ -280,7 +280,7 @@ def Time2Decay(arr, dt, fraction=0.99):
         ttd_arr = np.where(cflow < targetcflow, t, ttd_arr)
 
     # Finally, convert the indices into integration time
-    ttd_arr = ttd_arr.astype(np.float) * dt
+    ttd_arr = ttd_arr.astype(np.float64) * dt
 
     return ttd_arr
 
@@ -360,7 +360,7 @@ def AreaUnderCurve(arr, timestep, timespan='alltime'):
 
         # Initialise the final array
         tf_shape = arr_shape[1:]
-        totalflow = np.zeros(tf_shape, np.float)
+        totalflow = np.zeros(tf_shape, np.float64)
 
         # Sum the flow(s) over time, only in the desired time interval
         nsteps = arr_shape[0]

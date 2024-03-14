@@ -82,7 +82,7 @@ def JacobianMOU(con, tau):
     if con_shape[0] != con_shape[1]:
         raise ValueError( "'con' not a square matrix." )
     # Make sure con is a ndarray of dtype = np.float64
-    con = np.array(con, dtype=np.float)
+    con = np.array(con, dtype=np.float64)
     N = con_shape[0]
 
     # Check the tau constant, in case it is a 1-dimensional array-like.
@@ -93,12 +93,12 @@ def JacobianMOU(con, tau):
         if tau_shape[0] != N:
             raise ValueError( "'con' and tau not aligned." )
         # Make sure tau is a ndarray of dytpe = np.float64
-        tau = np.array(tau, dtype=np.float)
+        tau = np.array(tau, dtype=np.float64)
     else:
-        tau = tau * np.ones(N, dtype=np.float)
+        tau = tau * np.ones(N, dtype=np.float64)
 
     # 1) CALCULATE THE JACOBIAN MATRIX
-    jacdiag = -np.ones(N, dtype=np.float) / tau
+    jacdiag = -np.ones(N, dtype=np.float64) / tau
     jac = np.diag(jacdiag) + con
 
     return jac
@@ -155,7 +155,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
     nt = int(tmax / timestep) + 1
     sigma_sqrt = scipy.linalg.sqrtm(sigma)
 
-    flow_tensor = np.zeros((nt,N,N), dtype=np.float)
+    flow_tensor = np.zeros((nt,N,N), dtype=np.float64)
 
     if case == 'DynFlow':
         for i_t in range(nt):

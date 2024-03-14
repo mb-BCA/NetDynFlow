@@ -105,6 +105,12 @@ limitations under the License.
 -------------------------------------------------------------------------------
 ### VERSION HISTORY
 
+##### March 14, 2024
+Small bugs fixed:
+
+- Remaining *Numba* dependency removed.
+- Fixed the new  aliases for `int` and `float` in *Numpy*. All arrays are now declared as `np.int64` or `np.float64`, and individual numbers as standard Python `int` or `float`. 
+
 ##### December 14, 2023
 *core.py* module has been simplified to three practical functions `DynFlow()`, `IntrinsicFlow()` and `ExtrinsicFlow()`. 
 

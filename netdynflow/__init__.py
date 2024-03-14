@@ -152,10 +152,10 @@ from . import netmodels
 
 __author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
 __email__ = "galib@Zamora-Lopez.xyz"
-__copyright__ = "Copyright 2023"
+__copyright__ = "Copyright 2024"
 __license__ = "Apache License version 2.0"
-__version__ = "1.0.1"
-__update__ = "14/12/2023"
+__version__ = "1.0.2"
+__update__ = "14/03/2024"
 
 
 #
