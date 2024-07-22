@@ -172,7 +172,7 @@ def CalcTensor(con, tau, sigma, tmax=20, timestep=0.1,
             t = i_t * timestep
             # Calculate the term for jacdiag without using expm(), to speed up
             jacdiag_t = np.diag( np.exp(jacdiag * t) )
-            # Calculate the dynamic communicability at time t.
+            # Calculate the intrinsic flow at time t.
             flow_tensor[i_t] = np.dot( sigma_sqrt, jacdiag_t)
 
     elif case == 'FullFlow':
