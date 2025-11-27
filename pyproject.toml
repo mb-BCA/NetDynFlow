@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "netdynflow"
+dynamic = ["version"]
+description = "A package to study complex networks based on temporal flow propagations."
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+    { name = "Gorka Zamora-Lopez", email = "gorka@zamora-lopez.xyz" },
+    { name = "Matthieu Gilson", email = "matthieu.gilson@univ-amu.fr" },
+    { name = "Nikos Kouvaris" },
+]
+
+keywords = [ "graph theory", "complex networks", "network analysis", "weighted networks" ]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "numpy>=1.6",
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://github.com/gorkazl/NetDynFlow"
+
+[tool.hatch.version]
+path = "netdynflow/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/netdynflow",
+]

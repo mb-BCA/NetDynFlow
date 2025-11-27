@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2023, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
-# <galib@Zamora-Lopez.xyz>
+# Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 #
 # Released under the Apache License, Version 2.0 (the "License");
 # you may not use this software except in compliance with the License.
@@ -40,13 +39,17 @@ dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 Available functions
 *******************
 
-The package is organised into two modules:
+The package is organised into four modules:
 
-core.py
+core
     Functions to calculate spatio-temporal evolution of conditiona network flows.
-metrics.py
+metrics
     Descriptors to analyse the spatio-temporal evolution of perturbation-induced
     flows in a network.
+netmodels
+    Functions to generate benchmark and surrogate networks.
+tools
+    Data transformations and other helpers.
 
 To see the list of all functions available use the standard help in an
 interactive session, for both modules ::
@@ -129,7 +132,7 @@ time as:  ::
 
 License
 -------
-Copyright (c) 2023, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
+Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 
 Released under the Apache License, Version 2.0 (the "License");
 you may not use this software except in compliance with the License.
@@ -150,12 +153,9 @@ from . import tools
 from . import netmodels
 
 
-__author__ = "Gorka Zamora-Lopez, Matthieu Gilson and Nikos E. Kouvaris"
-__email__ = "galib@Zamora-Lopez.xyz"
-__copyright__ = "Copyright 2024"
-__license__ = "Apache License version 2.0"
-__version__ = "1.0.2"
-__update__ = "14/03/2024"
+# Some metada of the package
+__version__ = "1.1"
+
 
 
 #
