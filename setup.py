@@ -10,11 +10,11 @@ setup(
     name =  'netdynflow',
     description = 'A package to study complex networks based on temporal flow propagations.',
     url =  'https://github.com/gorkazl/NetDynFlow',
-    version =  '1.0.2',
-    license =  'Apache License 2.0',
+    version =  '1.1',
+    license =  'Apache-2.0',
 
     author =  'Gorka Zamora-Lopez, Matthieu Gilson, Nikos Kouvaris',
-    author_email =  'galib@zamora-lopez.xyz',
+    author_email =  'gorka@zamora-lopez.xyz',
 
     install_requires =  REQS,
     packages =  find_packages(exclude=['doc', '*tests*']),
