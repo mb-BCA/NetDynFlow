@@ -1,7 +1,8 @@
+> DEPRECATED PACKAGE. NetDynFlow is being maintained but no longer developed. The functionalities of NetDynFlow are superseded by [SiReNetA](https://github.com/mb-BCA/SiReNetA), which generalises the same type of network analyses but accounts for different underlying propagation models.
 
 # NetDynFlow
 
-A package to study complex networks based on the temporal evolution of their Dynamic Communicability and Flow.
+*A package to study complex networks based on the temporal evolution of their Dynamic Communicability and Flow.*
 
 Graph theory constitutes a widely used and established field providing powerful tools for the characterization of complex networks. However, the diversity of complex networks studied nowadays overcomes the capabilities of classical graph metrics (originally developed for binary adjacency matrices) to provide with information to understand networks and their function. Also, in several domains, networks are often inferred from real-data-forming dynamic systems and thus, their analysis requires a different angle. The tools given in this package allow to overcome those limitations for a variety of complex networks, specially those that are weighted and whose structure is associated with dynamical phenomena.
 
@@ -18,38 +19,37 @@ dynamics: A new framework based on dynamic communicability](https://doi.org/10.1
 
 ### INSTALLATION
 
-Installation of *NetDynFlow* is simple. An existing python distribution and the [pip](https://github.com/pypa/pip) package manager need to be installed. If Python was installed via the [Canopy](https://www.enthought.com/product/canopy/) or the [Anaconda](https://www.anaconda.com) distributions, then pip is surely installed. To check, open a terminal and type:
+#### Direct installation from GitHub 
 
-	$ pip --help
+If you have [git](https://git-scm.com) installed, you can install NetDynFlow directly from its GitHub repository. Open a terminal window and type:
 
-*NetDynFlow* is still not registered in PyPI (the Python Packages Index) and installation follows directly from GitHub. However, pip will automatically take care of the  dependencies (see the *requirements.txt* file). There are two alternative manners to install: the easy and the lazy. 
+	python3 -m pip install git+https://github.com/mb-BCA/netdynflow@master
 
-**- The easy installation**: Visit the GitHub repository [https://github.com/gorkazl/NetDynFlow/](https://github.com/gorkazl/NetDynFlow/) and click on the "Clone or download" button at the right hand side (the green button). Select "Download ZIP". Unzip the file, open a terminal and move to the folder, e.g.,
+This procedure will only download and install the package (files in the "*netdynflow/*" folder) into your current environment. 
 
-	$ cd ~/Downloads/NetDynFlow-master/
+#### Installing NetDynFlow in editable mode
 
-Once on the folder that contains the *setup.py* file, type the following
+If you want to install NetDynFlow such that you can make changes to it "*on the fly*" then, visit its GitHub repository [https://github.com/mb-BCA/NetDynFlow/tree/master](https://github.com/mb-BCA/netdynflow/tree/master), and click on the green "*<> Code*" button on the top right and select "Download ZIP" from the pop-up menu. Once downloaded, move the *zip* file to a target folder (e.g., "*~/Documents/myLibraries/*") and unzip the file. Open a terminal and `cd` to the resulting folder, e.g.,
 
-	$ pip install .
+	cd ~/Documents/myLibraries/NetDynFlow-master/
 
-Do not forget the "." at the end which means "*look for the setup.py file in the current directory*." This will check for the dependencies and install *NetDynFlow*. To confirm the installation open an interactive session and try to import the library by typing `import netdynflow`.
+Once on the path (make sure it contains the *pyproject.toml* file), type:
 
-> **NOTE**: After installation the current folder "*~/Downloads/NetDynFlow-master/*" can be safely deleted, or moved somewhere else if you want to conserve the examples and the tests.
+	python3 -m pip install -e .
 
-**- The lazy installation**: If [git](https://git-scm.com) is also installed in your computer, then open a terminal and type:
-
-	$ pip install git+https://github.com/mb-BCA/NetDynFlow.git@master
-
-This will install the package, that is, the content in the folder *netdynflow/*. Other files (Examples/, README.md, LICENSE.txt, etc.) need to be downloaded manually, if wanted.
+Do not forget the "." at the end which means "*look for the pyproject.toml file in the current directory*." This will install NetDynFlow such that every time changes are made to the package (located in the path chosen), these will be inmediately available. You may need to restart the IPython or Jupyter notebook session, though.
 
 
 
-### HOW TO USE *NetDynFlow*
+### HOW TO USE NetDynFlow
 
-The package is organised into two modules:
+The package is organised into four modules:
 
 - *core.py*: Functions to obtain the temporal evolution of dynamic communicability and flow.
 - *metrics.py*: Network descriptors to analyse the temporal evolution of the dynamic communicability and flow.
+- *netmodels.py*: Functions to generate benchmark and surrogate networks.
+- *tools.py*: Data transformations and other helpers.
+
 
 To see the list of all functions available use the standard help in an interactive session, e.g.,
 
@@ -87,7 +87,7 @@ Now we calculate the *total communicability* and *diversity* of the network over
 
 ### LICENSE
 
-Copyright 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris. E-mail: <gorka@Zamora-Lopez.xyz>
+Copyright 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this software except in compliance with the License.
@@ -95,15 +95,18 @@ You may obtain a copy of the License at
 
 [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 
 -------------------------------------------------------------------------------
 ### VERSION HISTORY
+
+##### November 27, 2025 (Version 1.1)
+
+* The library has been reshaped to be compliant with the modern [PyPA specifications](https://packaging.python.org/en/latest/specifications/).
+* [Hatch](https://hatch.pypa.io/latest/) was chosen as the tool to build and publish the package. See the *pyproject.toml* file. 
+* Minor bug and documentation fixes.
+
 
 ##### March 14, 2024
 Small bugs fixed:
