@@ -39,7 +39,7 @@ dynamics: A new framework based on dynamic communicability" NeuroImage 201,
 Available functions
 *******************
 
-The package is organised into two modules:
+The package is organised into four modules:
 
 core
     Functions to calculate spatio-temporal evolution of conditiona network flows.
