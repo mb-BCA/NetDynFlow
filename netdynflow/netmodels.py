@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2023, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
-# <galib@Zamora-Lopez.xyz>
+# Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 #
 # Released under the Apache License, Version 2.0 (the "License");
 # you may not use this software except in compliance with the License.
@@ -39,7 +38,6 @@ SpatialWeightSorting
 SpatialLatticeFromNetwork
     Generates spatial weighted lattices with same weights as `con`.
 
-
 """
 
 # Standard library imports
@@ -48,7 +46,6 @@ SpatialLatticeFromNetwork
 import numpy as np
 import numpy.linalg
 import scipy.linalg
-# from numba import jit
 # Import GAlib for graph analysis and graph generation tools
 ### ACHTUNG!! For now I am importing GAlib but, for the long run, we must
 ### decide whether we want GAlib as a dependency of NetDynFlow, or we
@@ -106,7 +103,6 @@ def ShuffleLinkWeights(con):
 
     return newcon
 
-# @jit
 def RandomiseWeightedNetwork(con):
     """
     Randomises a connectivity matrix and its weights.
@@ -160,10 +156,10 @@ def RandomiseWeightedNetwork(con):
     # Find out whether con is directed and calculate the number of links
     if Reciprocity(con) == 1.0:
         directed = False
-        L = int( round(0.5*con.astype(bool).sum()) )
+        L = np.int64( round(0.5*con.astype(bool).sum()) )
     else:
         directed = True
-        L = con.astype(bool).sum()
+        L = np.int64( con.astype(bool).sum() )
 
     # Find out whether `con` allows self-loops (non-zero diagonal elements)
     if con.trace() == 0:
@@ -190,8 +186,8 @@ def RandomiseWeightedNetwork(con):
     counter = 0
     while counter < L:
         # 2.1) Pick up two nodes at random
-        source = int(N * numpy.random.rand())
-        target = int(N * numpy.random.rand())
+        source = np.int64(N * numpy.random.rand())
+        target = np.int64(N * numpy.random.rand())
 
         # 2.2) Check if they can be linked, otherwise look for another pair
         if newcon[source,target]: continue

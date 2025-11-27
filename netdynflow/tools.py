@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2023, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
-# <galib@Zamora-Lopez.xyz>
+# Copyright (c) 2019, Gorka Zamora-López, Matthieu Gilson and Nikos E. Kouvaris
 #
 # Released under the Apache License, Version 2.0 (the "License");
 # you may not use this software except in compliance with the License.
@@ -131,7 +130,7 @@ def Reciprocity(adjmatrix):
         # Rest = np.abs(adjmatrix - adjmatrix.T)
         Rest = np.abs(adjmatrix ^ adjmatrix.T)
         Lsingle = 0.5*Rest.sum()
-        reciprocity = float(L-Lsingle) / L
+        reciprocity = np.float64(L-Lsingle) / L
 
     return reciprocity
 
